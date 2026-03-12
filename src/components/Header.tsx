@@ -2,15 +2,33 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Phone, Menu, X, ChevronDown, Search, User } from "lucide-react";
 import { biensante_logo_png as logo } from "@/assets/encodedImages";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { SearchModal } from "./SearchModal";
+import { BookAppointmentModal } from "./BookAppointmentModal";
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const services = [
+    { name: "Cardiology", href: "/services/cardiology" },
+    { name: "Pulmonary", href: "/services/pulmonary" },
+    { name: "Neurology", href: "/services/neurology" },
+    { name: "Orthopedics", href: "/services/orthopedics" },
+    { name: "Laboratory", href: "/services/laboratory" },
+    { name: "Emergency Care", href: "/services/emergency" },
+  ];
 
   const navItems = [
-    { name: "Specialties & Services", href: "#services" },
-    { name: "Patients & Visitors", href: "#patients" },
-    { name: "About Us", href: "#about" },
-    { name: "Find a Doctor", href: "#doctors" },
+    { name: "Patients & Visitors", href: "/patients-visitors" },
+    { name: "About Us", href: "/about" },
+    { name: "Find a Doctor", href: "/find-doctor" },
   ];
 
   return (
@@ -41,41 +59,64 @@ const Header = () => {
       <div className="container mx-auto px-6 py-4">
         <nav className="flex items-center justify-between">
           {/* Logo */}
-          <a href="/" className="flex items-center flex-shrink-0">
+          <Link to="/" className="flex items-center flex-shrink-0">
             <img src={logo} alt="BienSanté Hospital" className="h-12 md:h-14 w-auto object-contain" />
-          </a>
+          </Link>
 
           {/* Desktop Navigation Links */}
           <div className="hidden lg:flex items-center space-x-8">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors duration-200 flex items-center outline-none">
+                Specialties & Services
+                <ChevronDown className="w-4 h-4 ml-1 text-slate-400" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 bg-white shadow-lg border-slate-100 p-2 rounded-xl">
+                {services.map((service) => (
+                  <DropdownMenuItem 
+                    key={service.name} 
+                    className="cursor-pointer hover:bg-slate-50 focus:bg-slate-50 rounded-lg py-2.5 px-3"
+                    onClick={() => navigate(service.href)}
+                  >
+                    <span className="text-sm font-medium text-slate-700">{service.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.name}
-                href={item.href}
+                to={item.href}
                 className="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors duration-200 flex items-center"
               >
                 {item.name}
-                {item.name === "Specialties & Services" && <ChevronDown className="w-4 h-4 ml-1 text-slate-400" />}
-              </a>
+              </Link>
             ))}
           </div>
 
           {/* Action Buttons */}
           <div className="hidden lg:flex items-center space-x-4">
-            <button className="text-slate-500 hover:text-blue-600 transition-colors">
-              <Search className="w-5 h-5" />
-            </button>
-            <Button
-              className="bg-blue-600 text-white hover:bg-blue-700 rounded-md px-6 font-semibold"
-            >
-              Book Appointment
-            </Button>
+            <SearchModal>
+              <button className="text-slate-500 hover:text-blue-600 transition-colors">
+                <Search className="w-5 h-5" />
+              </button>
+            </SearchModal>
+            <BookAppointmentModal>
+              <Button
+                className="bg-blue-600 text-white hover:bg-blue-700 rounded-md px-6 font-semibold"
+              >
+                Book Appointment
+              </Button>
+            </BookAppointmentModal>
           </div>
 
           {/* Mobile menu button */}
           <div className="lg:hidden flex items-center space-x-4">
-            <button className="text-slate-500">
-              <Search className="w-5 h-5" />
-            </button>
+            <SearchModal>
+              <button className="text-slate-500">
+                <Search className="w-5 h-5" />
+              </button>
+            </SearchModal>
             <Button
               variant="ghost"
               size="icon"
@@ -90,22 +131,40 @@ const Header = () => {
         {/* Mobile Menu */}
         {mobileOpen && (
           <div className="lg:hidden py-4 border-t border-slate-100 mt-4 space-y-4">
-            {navItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className="block text-base font-semibold text-slate-700 hover:text-blue-600 transition-colors py-2"
-              >
-                {item.name}
-              </a>
-            ))}
-            <div className="pt-4 border-t border-slate-100 flex flex-col space-y-3">
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-2">Services</p>
+              {services.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="block text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors py-2 px-2 pl-4"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-2">More</p>
+              {navItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="block text-base font-semibold text-slate-700 hover:text-blue-600 transition-colors py-2 px-2"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+            <div className="pt-4 border-t border-slate-100 flex flex-col space-y-3 px-2">
               <a href="#" className="text-sm font-medium text-slate-600 py-2">Patient Portal</a>
               <a href="#" className="text-sm font-medium text-slate-600 py-2">Pay Bill</a>
-              <Button className="w-full bg-blue-600 text-white hover:bg-blue-700 rounded-md font-semibold justify-center">
-                Book Appointment
-              </Button>
+              <BookAppointmentModal>
+                <Button className="w-full bg-blue-600 text-white hover:bg-blue-700 rounded-md font-semibold justify-center">
+                  Book Appointment
+                </Button>
+              </BookAppointmentModal>
             </div>
           </div>
         )}
