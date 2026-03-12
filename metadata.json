@@ -1,0 +1,5 @@
+{
+  "name": "Biensante Hospital",
+  "description": "A premier healthcare facility dedicated to providing compassionate, high-quality medical care to our community.",
+  "requestFramePermissions": ["geolocation"]
+}
