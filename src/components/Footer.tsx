@@ -1,5 +1,5 @@
 import { MapPin, Phone, Mail, Twitter, Facebook, Youtube, Linkedin, ChevronRight } from "lucide-react";
-import logo from "@/assets/biensante-logo.png";
+import { biensante_logo_png as logo } from "@/assets/encodedImages";
 
 const Footer = () => {
   const services = [

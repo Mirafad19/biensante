@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Phone, Menu, X, ChevronDown, Search, User } from "lucide-react";
-import logo from "@/assets/biensante-logo.png";
+import { biensante_logo_png as logo } from "@/assets/encodedImages";
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);

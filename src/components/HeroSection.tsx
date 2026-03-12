@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Phone, Calendar, Search, ArrowRight } from "lucide-react";
-import heroImage from "@/assets/hero-medical-team.jpg";
+import { hero_medical_team_jpg as heroImage } from "@/assets/encodedImages";
 
 const HeroSection = () => {
   return (

@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Heart, Clock, Users, Shield, Stethoscope, Award, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
-import aboutImg from "@/assets/about-doctor.jpg";
+import { about_doctor_jpg as aboutImg } from "@/assets/encodedImages";
 import { useNavigate } from "react-router-dom";
 
 const values = [

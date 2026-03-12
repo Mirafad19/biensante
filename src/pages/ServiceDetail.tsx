@@ -4,12 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Phone, CheckCircle, Clock, Users, Stethoscope } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
-import cardiologyImg from "@/assets/service-cardiology.jpg";
-import pulmonaryImg from "@/assets/service-pulmonary.jpg";
-import neurologyImg from "@/assets/service-neurology.jpg";
-import orthopedicsImg from "@/assets/service-orthopedics.jpg";
-import laboratoryImg from "@/assets/service-laboratory.jpg";
-import emergencyImg from "@/assets/service-emergency.jpg";
+import { service_cardiology_jpg as cardiologyImg, service_pulmonary_jpg as pulmonaryImg, service_neurology_jpg as neurologyImg, service_orthopedics_jpg as orthopedicsImg, service_laboratory_jpg as laboratoryImg, service_emergency_jpg as emergencyImg } from "@/assets/encodedImages";
 
 const serviceData: Record<string, {
   title: string;
