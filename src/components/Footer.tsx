@@ -1,5 +1,6 @@
 import { MapPin, Phone, Mail, Twitter, Facebook, Youtube, Linkedin, ChevronRight } from "lucide-react";
 import { biensante_logo_png as logo } from "@/assets/encodedImages";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const services = [
@@ -13,10 +14,10 @@ const Footer = () => {
 
   const quickLinks = [
     { name: "Home", href: "/" },
-    { name: "About Us", href: "#about" },
-    { name: "Our Services", href: "#services" },
-    { name: "Testimonials", href: "#testimonials" },
-    { name: "Contact Us", href: "#faq" },
+    { name: "About Us", href: "/about" },
+    { name: "Find a Doctor", href: "/find-doctor" },
+    { name: "Patients & Visitors", href: "/patients-visitors" },
+    { name: "Patient Portal", href: "/patient-portal" },
   ];
 
   return (
@@ -25,7 +26,9 @@ const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand & Contact */}
           <div className="space-y-6">
-            <img src={logo} alt="BienSanté Hospital" className="h-16 w-auto object-contain brightness-0 invert" />
+            <Link to="/">
+              <img src={logo} alt="BienSanté Hospital" className="h-16 w-auto object-contain brightness-0 invert" />
+            </Link>
             <p className="text-sm text-slate-400 leading-relaxed">
               Providing compassionate, world-class healthcare to our community. Your health is our priority.
             </p>
@@ -51,10 +54,10 @@ const Footer = () => {
             <ul className="space-y-3">
               {services.map((service) => (
                 <li key={service.name}>
-                  <a href={`/services/${service.slug}`} className="flex items-center space-x-2 group text-sm hover:text-white transition-colors">
+                  <Link to={`/services/${service.slug}`} className="flex items-center space-x-2 group text-sm hover:text-white transition-colors">
                     <ChevronRight className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" />
                     <span>{service.name}</span>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -66,10 +69,10 @@ const Footer = () => {
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.name}>
-                  <a href={link.href} className="flex items-center space-x-2 group text-sm hover:text-white transition-colors">
+                  <Link to={link.href} className="flex items-center space-x-2 group text-sm hover:text-white transition-colors">
                     <ChevronRight className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" />
                     <span>{link.name}</span>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -82,9 +85,14 @@ const Footer = () => {
               Follow us on social media for health tips, news, and updates from our hospital.
             </p>
             <div className="flex space-x-4">
-              {[Twitter, Facebook, Youtube, Linkedin].map((Icon, i) => (
-                <a key={i} href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors">
-                  <Icon className="w-5 h-5" />
+              {[
+                { Icon: Twitter, href: "https://twitter.com" },
+                { Icon: Facebook, href: "https://facebook.com" },
+                { Icon: Youtube, href: "https://youtube.com" },
+                { Icon: Linkedin, href: "https://linkedin.com" }
+              ].map((social, i) => (
+                <a key={i} href={social.href} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors">
+                  <social.Icon className="w-5 h-5" />
                 </a>
               ))}
             </div>
@@ -95,9 +103,9 @@ const Footer = () => {
         <div className="border-t border-slate-800 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
           <p>&copy; {new Date().getFullYear()} BienSanté Hospital. All Rights Reserved.</p>
           <div className="flex space-x-6">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white transition-colors">Patient Rights</a>
+            <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+            <Link to="/patient-rights" className="hover:text-white transition-colors">Patient Rights</Link>
           </div>
         </div>
       </div>

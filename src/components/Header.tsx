@@ -47,10 +47,10 @@ const Header = () => {
               <Phone className="w-3 h-3 mr-2" />
               Emergency: 0802 233 3285
             </a>
-            <a href="#" className="flex items-center text-blue-400 hover:text-blue-300 transition-colors">
+            <Link to="/patient-portal" className="flex items-center text-blue-400 hover:text-blue-300 transition-colors">
               <User className="w-3 h-3 mr-2" />
               Patient Portal
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -158,7 +158,7 @@ const Header = () => {
               ))}
             </div>
             <div className="pt-4 border-t border-slate-100 flex flex-col space-y-3 px-2">
-              <a href="#" className="text-sm font-medium text-slate-600 py-2">Patient Portal</a>
+              <Link to="/patient-portal" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-slate-600 py-2">Patient Portal</Link>
               <a href="#" className="text-sm font-medium text-slate-600 py-2">Pay Bill</a>
               <BookAppointmentModal>
                 <Button className="w-full bg-blue-600 text-white hover:bg-blue-700 rounded-md font-semibold justify-center">

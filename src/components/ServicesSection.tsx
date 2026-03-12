@@ -55,7 +55,10 @@ const ServicesSection = () => {
               BienSanté Hospital offers a comprehensive range of medical specialties. Our multidisciplinary teams work together to provide you with the highest standard of care.
             </p>
           </div>
-          <button className="hidden md:inline-flex items-center text-blue-600 font-semibold hover:text-blue-800 transition-colors">
+          <button 
+            onClick={() => navigate("/services/cardiology")}
+            className="hidden md:inline-flex items-center text-blue-600 font-semibold hover:text-blue-800 transition-colors"
+          >
             View All Specialties <ArrowRight className="w-4 h-4 ml-2" />
           </button>
         </div>
@@ -91,7 +94,10 @@ const ServicesSection = () => {
         </div>
         
         <div className="mt-12 md:hidden">
-          <button className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-800 transition-colors">
+          <button 
+            onClick={() => navigate("/services/cardiology")}
+            className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-800 transition-colors"
+          >
             View All Specialties <ArrowRight className="w-4 h-4 ml-2" />
           </button>
         </div>

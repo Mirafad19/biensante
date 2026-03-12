@@ -1,0 +1,49 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A patient or staff member in the system",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "role": { "type": "string", "enum": ["patient", "admin", "doctor"] },
+        "patientId": { "type": "string", "description": "Hospital specific patient ID" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "firstName", "lastName", "role"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "A medical appointment request",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "patientUid": { "type": "string" },
+        "patientName": { "type": "string" },
+        "patientEmail": { "type": "string", "format": "email" },
+        "patientPhone": { "type": "string" },
+        "specialty": { "type": "string" },
+        "doctorName": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled", "completed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientName", "patientEmail", "specialty", "date", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "Appointment records"
+    }
+  }
+}

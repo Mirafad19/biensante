@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - firstName: string (required)
+    //   - lastName: string (required)
+    //   - role: string (required, enum: ['patient', 'admin', 'doctor'])
+    //   - patientId: string (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: appointments
+    // Fields:
+    //   - patientUid: string (optional, for logged in users)
+    //   - patientName: string (required)
+    //   - patientEmail: string (required)
+    //   - patientPhone: string (optional)
+    //   - specialty: string (required)
+    //   - doctorName: string (optional)
+    //   - date: string (required)
+    //   - time: string (optional)
+    //   - reason: string (optional)
+    //   - status: string (required, enum: ['pending', 'confirmed', 'cancelled', 'completed'])
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "fadahunsi.miracle@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasOnly(['uid', 'email', 'firstName', 'lastName', 'role', 'patientId', 'createdAt']) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.email is string && isValidEmail(data.email) &&
+             data.firstName is string && data.firstName.size() > 0 && data.firstName.size() < 50 &&
+             data.lastName is string && data.lastName.size() > 0 && data.lastName.size() < 50 &&
+             data.role in ['patient', 'admin', 'doctor'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidAppointment(data) {
+      return data.keys().hasAll(['patientName', 'patientEmail', 'specialty', 'date', 'status', 'createdAt']) &&
+             data.patientName is string && data.patientName.size() > 0 && data.patientName.size() < 100 &&
+             data.patientEmail is string && isValidEmail(data.patientEmail) &&
+             data.specialty is string && data.specialty.size() > 0 &&
+             data.date is string &&
+             data.status in ['pending', 'confirmed', 'cancelled', 'completed'] &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    (isOwner(userId) && request.resource.data.role == 'patient' || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    ((isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin());
+    }
+
+    match /appointments/{appointmentId} {
+      // Patients can see their own appointments. Admins can see all.
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.patientUid == request.auth.uid);
+      
+      // Anyone can request an appointment (even unauthenticated, if we want to allow guest requests)
+      // But let's require auth for now to keep it secure, or allow unauthenticated if user wants.
+      // User said "inbuilt form", usually these are public. 
+      // Let's allow unauthenticated create but with strict validation.
+      allow create: if isValidAppointment(request.resource.data) && 
+                    (!('patientUid' in request.resource.data) || request.resource.data.patientUid == request.auth.uid);
+      
+      allow update: if isAdmin() || (isAuthenticated() && resource.data.patientUid == request.auth.uid && isValidAppointment(request.resource.data));
+      allow delete: if isAdmin();
+    }
+  }
+}
