@@ -27,7 +27,7 @@ const Footer = () => {
           {/* Brand & Contact */}
           <div className="space-y-6">
             <Link to="/">
-              <img src={logo} alt="BienSanté Hospital" className="h-16 w-auto object-contain brightness-0 invert" />
+              <img src={logo} alt="BienSanté Hospital" className="h-16 w-auto object-contain" />
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed">
               Providing compassionate, world-class healthcare to our community. Your health is our priority.

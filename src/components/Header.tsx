@@ -37,10 +37,10 @@ const Header = () => {
       <div className="bg-slate-900 text-slate-300 py-2 hidden md:block">
         <div className="container mx-auto px-6 flex justify-between items-center text-xs font-medium tracking-wide">
           <div className="flex space-x-6">
-            <a href="#" className="hover:text-white transition-colors">Careers</a>
-            <a href="#" className="hover:text-white transition-colors">Pay Bill</a>
-            <a href="#" className="hover:text-white transition-colors">Financial Assistance</a>
-            <a href="#" className="hover:text-white transition-colors">For Medical Professionals</a>
+            <Link to="/patient-portal" className="hover:text-white transition-colors">Careers</Link>
+            <Link to="/patient-portal" className="hover:text-white transition-colors">Pay Bill</Link>
+            <Link to="/patient-portal" className="hover:text-white transition-colors">Financial Assistance</Link>
+            <Link to="/patient-portal" className="hover:text-white transition-colors">For Medical Professionals</Link>
           </div>
           <div className="flex items-center space-x-6">
             <a href="tel:08022333285" className="flex items-center hover:text-white transition-colors">
@@ -159,7 +159,7 @@ const Header = () => {
             </div>
             <div className="pt-4 border-t border-slate-100 flex flex-col space-y-3 px-2">
               <Link to="/patient-portal" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-slate-600 py-2">Patient Portal</Link>
-              <a href="#" className="text-sm font-medium text-slate-600 py-2">Pay Bill</a>
+              <Link to="/patient-portal" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-slate-600 py-2">Pay Bill</Link>
               <BookAppointmentModal>
                 <Button className="w-full bg-blue-600 text-white hover:bg-blue-700 rounded-md font-semibold justify-center">
                   Book Appointment

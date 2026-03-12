@@ -74,9 +74,9 @@ const HeroSection = () => {
           >
             <h3 className="text-xl font-bold text-slate-900 mb-3">Patient Portal</h3>
             <p className="text-slate-600 mb-6 flex-grow">Access your medical records, test results, and manage appointments securely.</p>
-            <a href="#" className="text-blue-600 font-semibold flex items-center hover:text-blue-800 transition-colors">
+            <Link to="/patient-portal" className="text-blue-600 font-semibold flex items-center hover:text-blue-800 transition-colors">
               Log In <ArrowRight className="w-4 h-4 ml-1" />
-            </a>
+            </Link>
           </motion.div>
 
           <motion.div 
@@ -101,9 +101,9 @@ const HeroSection = () => {
           >
             <h3 className="text-xl font-bold text-slate-900 mb-3">Locations & Directions</h3>
             <p className="text-slate-600 mb-6 flex-grow">Find our main hospital campus and affiliated clinics across the region.</p>
-            <a href="#contact" className="text-blue-600 font-semibold flex items-center hover:text-blue-800 transition-colors">
+            <Link to="/location" className="text-blue-600 font-semibold flex items-center hover:text-blue-800 transition-colors">
               View Map <ArrowRight className="w-4 h-4 ml-1" />
-            </a>
+            </Link>
           </motion.div>
         </div>
       </div>
