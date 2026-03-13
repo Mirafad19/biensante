@@ -57,11 +57,11 @@ const Header = () => {
       </div>
 
       {/* Main Navigation */}
-      <div className="container mx-auto px-6 py-4">
+      <div className="container mx-auto px-6 py-0.65">
         <nav className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center flex-shrink-0">
-            <img src={logo} alt="BienSanté Hospital" className="h-12 md:h-14 w-auto object-contain" />
+            <img src={logo} alt="BienSanté Hospital" className="h-20 md:h-20 w-auto object-contain" />
           </Link>
 
           {/* Desktop Navigation Links */}
