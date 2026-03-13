@@ -327,13 +327,6 @@ const ServiceDetail = () => {
                     <Phone className="w-4 h-4" />
                     Call: 0915 517 1407
                   </a>
-                  <Button
-                    variant="outline"
-                    className="w-full rounded-lg py-6"
-                    onClick={() => navigate("/#services")}
-                  >
-                    View All Services
-                  </Button>
                 </div>
               </motion.div>
             </div>

@@ -61,7 +61,8 @@ const ServicesSection = () => {
           {services.map((service, index) => (
             <div
               key={index}
-              className="group flex flex-col items-start"
+              className="group flex flex-col items-start cursor-pointer"
+              onClick={() => navigate(`/services/${service.slug}`)}
             >
               <div className="w-16 h-16 bg-blue-50 rounded-lg flex items-center justify-center mb-6 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
                 {/* Clone element to override color on hover if needed, but using CSS is easier. Let's just rely on the parent group-hover for the background, and we'll make the icon inherit color if we change it, but Lucide icons take color from className. Let's just keep it simple. */}

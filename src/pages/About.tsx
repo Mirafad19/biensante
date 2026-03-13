@@ -24,8 +24,8 @@ const values = [
   },
   {
     icon: Award,
-    title: "10+ Years of Trust",
-    description: "Serving the Shasha community for over a decade with consistent, reliable, and high-standard medical services.",
+    title: "15+ Years of Trust",
+    description: "Serving the Shasha community for over 15 years with consistent, reliable, and high-standard medical services.",
   },
   {
     icon: Clock,
@@ -40,7 +40,7 @@ const values = [
 ];
 
 const milestones = [
-  { year: "2013", event: "BienSanté Hospital founded in Shasha, Lagos" },
+  { year: "2011", event: "BienSanté Hospital founded in Shasha, Lagos" },
   { year: "2016", event: "Expanded to 8 specialized departments" },
   { year: "2019", event: "Partnered with 13+ HMO providers" },
   { year: "2022", event: "Upgraded laboratory with modern diagnostic equipment" },
@@ -79,7 +79,7 @@ const About = () => {
                 About BienSanté Hospital
               </h1>
               <p className="text-xl text-slate-300 max-w-2xl leading-relaxed">
-                A decade of compassionate, affordable, and quality healthcare for the people of Shasha, Lagos and beyond.
+                Over 15 years of compassionate, affordable, and quality healthcare for the people of Shasha, Lagos and beyond.
               </p>
             </motion.div>
           </div>
@@ -102,8 +102,8 @@ const About = () => {
                     className="rounded-xl shadow-lg w-full object-cover aspect-[4/5]"
                   />
                   <div className="absolute -bottom-8 -right-8 bg-blue-700 text-white rounded-xl p-8 shadow-xl border-4 border-white">
-                    <div className="text-5xl font-bold mb-1">10+</div>
-                    <div className="text-sm font-medium text-blue-100 uppercase tracking-wider">Years of Service</div>
+                    <div className="text-5xl font-bold mb-1">15+</div>
+                    <div className="text-sm font-medium text-blue-100 uppercase tracking-wider">Years of Excellence in Healthcare</div>
                   </div>
                 </div>
               </motion.div>

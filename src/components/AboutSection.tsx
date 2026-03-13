@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ArrowRight } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { about_doctor_jpg as aboutImg } from "@/assets/encodedImages";
