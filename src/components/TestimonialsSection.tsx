@@ -32,7 +32,7 @@ const testimonials = [
   {
     name: "Mr. Chinedu O.",
     role: "Engineer, Egbeda",
-    content: "Brought my son in for a dental emergency on a Sunday and they attended to us immediately. Clean facility, friendly nurses. You can tell they genuinely care about patients.",
+    content: "Brought my son in for a medical emergency on a Sunday and they attended to us immediately. Clean facility, friendly nurses. You can tell they genuinely care about patients.",
     rating: 5,
     initials: "CO",
   },

@@ -4,15 +4,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { db, auth, handleFirestoreError, OperationType } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { motion } from "framer-motion";
-import { CalendarDays, Clock, MapPin, Phone } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Phone, CheckCircle2 } from "lucide-react";
 
 export default function BookAppointment() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isSuccess) {
+      const timer = setTimeout(() => {
+        navigate("/");
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, navigate]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -88,9 +100,7 @@ export default function BookAppointment() {
 
       if (formspreeSuccess || firebaseSuccess) {
         (e.target as HTMLFormElement).reset();
-        toast.success("Appointment request sent!", {
-          description: "Our team will contact you shortly to confirm your appointment.",
-        });
+        setIsSuccess(true);
       } else {
         toast.error("Failed to send request", {
           description: "Please try again later or contact us directly.",
@@ -136,68 +146,89 @@ export default function BookAppointment() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <h2 className="text-2xl font-bold text-slate-900 mb-6">Patient Details</h2>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First name</Label>
-                      <Input id="firstName" name="firstName" required placeholder="John" className="h-12" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last name</Label>
-                      <Input id="lastName" name="lastName" required placeholder="Doe" className="h-12" />
-                    </div>
+                {isSuccess ? (
+                  <div className="flex flex-col items-center justify-center h-full py-12 text-center space-y-6">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                    >
+                      <CheckCircle2 className="w-24 h-24 text-green-500" />
+                    </motion.div>
+                    <h2 className="text-3xl font-bold text-slate-900">Request Sent Successfully!</h2>
+                    <p className="text-lg text-slate-600 max-w-md">
+                      Thank you for booking with BienSanté Hospital. Our team will contact you shortly to confirm your appointment.
+                    </p>
+                    <p className="text-sm text-slate-400 animate-pulse">
+                      Redirecting to home page...
+                    </p>
                   </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" name="email" type="email" required placeholder="john@example.com" className="h-12" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone number</Label>
-                      <Input id="phone" name="phone" type="tel" required placeholder="0801 234 5678" className="h-12" />
-                    </div>
-                  </div>
+                ) : (
+                  <>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-6">Patient Details</h2>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="firstName">First name</Label>
+                          <Input id="firstName" name="firstName" required placeholder="John" className="h-12" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="lastName">Last name</Label>
+                          <Input id="lastName" name="lastName" required placeholder="Doe" className="h-12" />
+                        </div>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email</Label>
+                          <Input id="email" name="email" type="email" required placeholder="john@example.com" className="h-12" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">Phone number</Label>
+                          <Input id="phone" name="phone" type="tel" required placeholder="0801 234 5678" className="h-12" />
+                        </div>
+                      </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="department">Department / Specialty</Label>
-                      <select 
-                        id="department" 
-                        name="department"
-                        className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        required
-                      >
-                        <option value="">Select a department...</option>
-                        <option value="cardiology">Cardiology</option>
-                        <option value="neurology">Neurology</option>
-                        <option value="orthopedics">Orthopedics</option>
-                        <option value="pulmonary">Pulmonary</option>
-                        <option value="laboratory">Laboratory</option>
-                        <option value="general">General Consultation</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="date">Preferred Date</Label>
-                      <Input id="date" name="date" type="date" required className="h-12" />
-                    </div>
-                  </div>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="department">Department / Specialty</Label>
+                          <select 
+                            id="department" 
+                            name="department"
+                            className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            required
+                          >
+                            <option value="">Select a department...</option>
+                            <option value="cardiology">Cardiology</option>
+                            <option value="neurology">Neurology</option>
+                            <option value="orthopedics">Orthopedics</option>
+                            <option value="pulmonary">Pulmonary</option>
+                            <option value="laboratory">Laboratory</option>
+                            <option value="general">General Consultation</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="date">Preferred Date</Label>
+                          <Input id="date" name="date" type="date" required className="h-12" />
+                        </div>
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Additional Notes (Optional)</Label>
-                    <Textarea 
-                      id="notes" 
-                      name="notes" 
-                      placeholder="Tell us briefly about your symptoms or reason for visit." 
-                      className="min-h-[120px] resize-y"
-                    />
-                  </div>
-                  
-                  <Button type="submit" className="w-full h-14 text-lg bg-blue-600 hover:bg-blue-700 font-bold rounded-xl" disabled={isSubmitting}>
-                    {isSubmitting ? "Submitting Request..." : "Request Appointment"}
-                  </Button>
-                </form>
+                      <div className="space-y-2">
+                        <Label htmlFor="notes">Additional Notes (Optional)</Label>
+                        <Textarea 
+                          id="notes" 
+                          name="notes" 
+                          placeholder="Tell us briefly about your symptoms or reason for visit." 
+                          className="min-h-[120px] resize-y"
+                        />
+                      </div>
+                      
+                      <Button type="submit" className="w-full h-14 text-lg bg-blue-600 hover:bg-blue-700 font-bold rounded-xl" disabled={isSubmitting}>
+                        {isSubmitting ? "Submitting Request..." : "Request Appointment"}
+                      </Button>
+                    </form>
+                  </>
+                )}
               </motion.div>
 
               {/* Info Column */}

@@ -21,8 +21,9 @@ const searchIndex = [
   { id: 7, title: "About Us", type: "Page", url: "/about", icon: FileText },
   { id: 8, title: "Patients & Visitors", type: "Page", url: "/patients-visitors", icon: FileText },
   { id: 9, title: "Find a Doctor", type: "Page", url: "/find-doctor", icon: User },
-  { id: 10, title: "Dr. Adebayo O. (Cardiology)", type: "Doctor", url: "/find-doctor", icon: User },
-  { id: 11, title: "Dr. Ngozi E. (Neurology)", type: "Doctor", url: "/find-doctor", icon: User },
+  { id: 10, title: "Dr. Olumide Banjo (Cardiology)", type: "Doctor", url: "/find-doctor", icon: User },
+  { id: 11, title: "Dr. Ahmed (Neurology)", type: "Doctor", url: "/find-doctor", icon: User },
+  { id: 12, title: "Dr. Adenuga Oluwasanmi (Orthopedics)", type: "Doctor", url: "/find-doctor", icon: User },
 ];
 
 export function SearchModal({ children }: { children: React.ReactNode }) {

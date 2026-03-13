@@ -9,12 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 
 const doctors = [
-  { id: 1, name: "Dr. Adebayo O.", specialty: "Cardiology", experience: "15+ Years", available: "Mon, Wed, Fri" },
-  { id: 2, name: "Dr. Ngozi E.", specialty: "Neurology", experience: "12+ Years", available: "Tue, Thu, Sat" },
-  { id: 3, name: "Dr. Chuks M.", specialty: "Orthopedics", experience: "18+ Years", available: "Mon - Fri" },
-  { id: 4, name: "Dr. Fatima S.", specialty: "Pulmonary", experience: "10+ Years", available: "Wed, Fri, Sat" },
-  { id: 5, name: "Dr. Tunde A.", specialty: "Emergency Care", experience: "8+ Years", available: "24/7 Shifts" },
-  { id: 6, name: "Dr. Sarah K.", specialty: "Pediatrics", experience: "14+ Years", available: "Mon, Tue, Thu" },
+  { id: 1, name: "Dr. Olumide Banjo", specialty: "Cardiology", experience: "15+ Years", available: "Mon, Wed, Fri" },
+  { id: 2, name: "Dr. Ahmed", specialty: "Neurology", experience: "12+ Years", available: "Tue, Thu, Sat" },
+  { id: 3, name: "Dr. Adenuga Oluwasanmi", specialty: "Orthopedics", experience: "18+ Years", available: "Mon - Fri" },
 ];
 
 const FindDoctor = () => {
