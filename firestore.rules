@@ -94,7 +94,7 @@ service cloud.firestore {
       // User said "inbuilt form", usually these are public. 
       // Let's allow unauthenticated create but with strict validation.
       allow create: if isValidAppointment(request.resource.data) && 
-                    (!('patientUid' in request.resource.data) || request.resource.data.patientUid == request.auth.uid);
+                    (!('patientUid' in request.resource.data) || request.resource.data.patientUid == null || (isAuthenticated() && request.resource.data.patientUid == request.auth.uid));
       
       allow update: if isAdmin() || (isAuthenticated() && resource.data.patientUid == request.auth.uid && isValidAppointment(request.resource.data));
       allow delete: if isAdmin();

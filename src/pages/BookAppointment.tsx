@@ -28,7 +28,37 @@ export default function BookAppointment() {
     const notes = formData.get("notes") as string;
 
     try {
-      // 1. Save to Firebase Database
+      // 1. Send Email Notification via Formspree
+      const formspreeEndpoint = "https://formspree.io/f/mnjgvkqy"; 
+      
+      let formspreeSuccess = false;
+      try {
+        const response = await fetch(formspreeEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            subject: `New Appointment Request from ${firstName} ${lastName}`,
+            name: `${firstName} ${lastName}`,
+            email: email,
+            phone: phone,
+            department: department,
+            preferredDate: date,
+            notes: notes,
+          }),
+        });
+        if (response.ok) {
+          formspreeSuccess = true;
+        } else {
+          console.error("Formspree error:", await response.text());
+        }
+      } catch (e) {
+        console.error("Formspree fetch error:", e);
+      }
+
+      // 2. Save to Firebase Database
       const appointmentData = {
         patientName: `${firstName} ${lastName}`,
         patientEmail: email,
@@ -41,42 +71,34 @@ export default function BookAppointment() {
         patientUid: auth.currentUser?.uid || null,
       };
 
-      await addDoc(collection(db, "appointments"), appointmentData);
-
-      // 2. Send Email Notification via Formspree
-      const formspreeEndpoint = "https://formspree.io/f/mnjgvkqy"; 
-      
-      const response = await fetch(formspreeEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          subject: `New Appointment Request from ${firstName} ${lastName}`,
-          name: `${firstName} ${lastName}`,
-          email: email,
-          phone: phone,
-          department: department,
-          preferredDate: date,
-          notes: notes,
-        }),
-      });
-
-      if (!response.ok) {
-        console.error("Formspree error:", await response.text());
-        // We still consider it a success for the user since it saved to Firebase
+      let firebaseSuccess = false;
+      try {
+        await addDoc(collection(db, "appointments"), appointmentData);
+        firebaseSuccess = true;
+      } catch (error) {
+        console.error("Firebase save error:", error);
+        try {
+          handleFirestoreError(error, OperationType.WRITE, "appointments");
+        } catch (e) {
+          console.error("Handled firestore error:", e);
+        }
       }
 
       setIsSubmitting(false);
-      (e.target as HTMLFormElement).reset();
-      toast.success("Appointment request sent!", {
-        description: "Our team will contact you shortly to confirm your appointment.",
-      });
+
+      if (formspreeSuccess || firebaseSuccess) {
+        (e.target as HTMLFormElement).reset();
+        toast.success("Appointment request sent!", {
+          description: "Our team will contact you shortly to confirm your appointment.",
+        });
+      } else {
+        toast.error("Failed to send request", {
+          description: "Please try again later or contact us directly.",
+        });
+      }
     } catch (error) {
       setIsSubmitting(false);
-      handleFirestoreError(error, OperationType.WRITE, "appointments");
-      toast.error("Failed to send request", {
+      toast.error("An unexpected error occurred", {
         description: "Please try again later or contact us directly.",
       });
     }

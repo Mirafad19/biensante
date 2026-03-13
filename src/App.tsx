@@ -14,30 +14,34 @@ import Location from "./pages/Location";
 import BookAppointment from "./pages/BookAppointment";
 import NotFound from "./pages/NotFound";
 
+import { ErrorBoundary } from "./components/ErrorBoundary";
+
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/patients-visitors" element={<PatientsVisitors />} />
-          <Route path="/find-doctor" element={<FindDoctor />} />
-          <Route path="/services/:slug" element={<ServiceDetail />} />
-          <Route path="/patient-portal" element={<PatientPortal />} />
-          <Route path="/location" element={<Location />} />
-          <Route path="/book-appointment" element={<BookAppointment />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ScrollToTop />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/patients-visitors" element={<PatientsVisitors />} />
+            <Route path="/find-doctor" element={<FindDoctor />} />
+            <Route path="/services/:slug" element={<ServiceDetail />} />
+            <Route path="/patient-portal" element={<PatientPortal />} />
+            <Route path="/location" element={<Location />} />
+            <Route path="/book-appointment" element={<BookAppointment />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Phone, Menu, X, ChevronDown, Search, User } from "lucide-react";
 import { biensante_logo_png as logo } from "@/assets/encodedImages";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +14,8 @@ import { SearchModal } from "./SearchModal";
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isBookAppointmentPage = location.pathname === "/book-appointment";
 
   const services = [
     { name: "Cardiology", href: "/services/cardiology" },
@@ -100,13 +102,15 @@ const Header = () => {
                 <Search className="w-5 h-5" />
               </button>
             </SearchModal>
-            <Link to="/book-appointment">
-              <Button
-                className="bg-blue-600 text-white hover:bg-blue-700 rounded-md px-6 font-semibold"
-              >
-                Book Appointment
-              </Button>
-            </Link>
+            {!isBookAppointmentPage && (
+              <Link to="/book-appointment">
+                <Button
+                  className="bg-blue-600 text-white hover:bg-blue-700 rounded-md px-6 font-semibold"
+                >
+                  Book Appointment
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -159,11 +163,13 @@ const Header = () => {
             <div className="pt-4 border-t border-slate-100 flex flex-col space-y-3 px-2">
               <Link to="/patient-portal" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-slate-600 py-2">Patient Portal</Link>
               <Link to="/patient-portal" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-slate-600 py-2">Pay Bill</Link>
-              <Link to="/book-appointment" onClick={() => setMobileOpen(false)}>
-                <Button className="w-full bg-blue-600 text-white hover:bg-blue-700 rounded-md font-semibold justify-center">
-                  Book Appointment
-                </Button>
-              </Link>
+              {!isBookAppointmentPage && (
+                <Link to="/book-appointment" onClick={() => setMobileOpen(false)}>
+                  <Button className="w-full bg-blue-600 text-white hover:bg-blue-700 rounded-md font-semibold justify-center">
+                    Book Appointment
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         )}
