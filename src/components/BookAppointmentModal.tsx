@@ -51,9 +51,9 @@ export function BookAppointmentModal({ children }: { children: React.ReactNode }
       // 2. Send Email Notification via Formspree (Optional)
       // Replace "YOUR_FORMSPREE_ID" with your actual Formspree form ID (e.g., "xqk...").
       // You can get this by signing up at formspree.io
-      const formspreeEndpoint = "https://formspree.io/f/YOUR_FORMSPREE_ID"; 
+      const formspreeEndpoint = "https://formspree.io/f/mnjgvkqy"; 
       
-      if (formspreeEndpoint !== "https://formspree.io/f/YOUR_FORMSPREE_ID") {
+      if (formspreeEndpoint !== "https://formspree.io/f/mnjgvkqy") {
         await fetch(formspreeEndpoint, {
           method: "POST",
           headers: {
