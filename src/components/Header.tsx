@@ -61,7 +61,7 @@ const Header = () => {
         <nav className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center flex-shrink-0">
-            <img src={logo} alt="BienSanté Hospital" className="h-20 md:h-24 w-auto object-contain" />
+            <img src={logo} alt="BienSanté Hospital" className="h-20 md:h-20 w-auto object-contain" />
           </Link>
 
           {/* Desktop Navigation Links */}
