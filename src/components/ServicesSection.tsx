@@ -7,13 +7,13 @@ const services = [
     title: "Cardiology",
     slug: "cardiology",
     description: "Advanced heart care, ECG diagnostics, and comprehensive treatment for cardiovascular conditions.",
-    image: "https://images.unsplash.com/photo-1628348068343-c6a848d2b6dd?q=80&w=800&auto=format&fit=crop",
+    image: "https://image2url.com/r2/default/images/1773442908761-28549637-2151-41cc-846f-faeb540afe24.png",
   },
   {
     title: "Pulmonary",
     slug: "pulmonary",
     description: "Lung health services including pulmonary function tests, asthma and COPD management.",
-    image: "https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=800&auto=format&fit=crop",
+    image: "https://image2url.com/r2/default/images/1773440330238-c2c76650-f484-4b68-9b4d-521268763e1b.png",
   },
   {
     title: "Neurology",
@@ -25,19 +25,19 @@ const services = [
     title: "Orthopedics",
     slug: "orthopedics",
     description: "Bone, joint, and muscle care — from fracture treatment to joint replacement surgeries.",
-    image: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=800&auto=format&fit=crop",
+    image: "https://image2url.com/r2/default/images/1773440525219-91c2d568-449a-4c6d-ab5e-ca750bc21a25.png",
   },
   {
     title: "Emergency Care",
     slug: "emergency",
     description: "24/7 rapid response for critical conditions, trauma, and urgent medical needs.",
-    image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800&auto=format&fit=crop",
+    image: "https://image2url.com/r2/default/images/1773441788512-93f12389-523e-4802-bfb4-1099352ffc18.png",
   },
   {
     title: "Laboratory & Diagnostics",
     slug: "laboratory",
     description: "State-of-the-art diagnostic testing, pathology services, and rapid lab results.",
-    image: "https://images.unsplash.com/photo-1579154273821-ad1114995933?q=80&w=800&auto=format&fit=crop",
+    image: "https://image2url.com/r2/default/images/1773440570989-f69f70f9-06f8-4e0b-9919-dcd038220e66.png",
   },
 ];
 

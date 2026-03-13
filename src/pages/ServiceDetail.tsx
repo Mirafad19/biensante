@@ -17,7 +17,7 @@ const serviceData: Record<string, {
 }> = {
   cardiology: {
     title: "Cardiology",
-    image: cardiologyImg,
+    image: "https://image2url.com/r2/default/images/1773442908761-28549637-2151-41cc-846f-faeb540afe24.png",
     tagline: "Expert Heart Care You Can Trust",
     description: [
       "Our Cardiology department provides comprehensive heart care, from routine check-ups to advanced diagnostics and management of complex cardiovascular conditions.",
@@ -49,7 +49,7 @@ const serviceData: Record<string, {
   },
   pulmonary: {
     title: "Pulmonary",
-    image: pulmonaryImg,
+    image: "https://image2url.com/r2/default/images/1773440330238-c2c76650-f484-4b68-9b4d-521268763e1b.png",
     tagline: "Breathe Better, Live Better",
     description: [
       "Our Pulmonary department specializes in the diagnosis and treatment of lung and respiratory conditions. From asthma to COPD, we provide comprehensive respiratory care.",
@@ -81,7 +81,7 @@ const serviceData: Record<string, {
   },
   neurology: {
     title: "Neurology",
-    image: neurologyImg,
+    image: "https://images.unsplash.com/photo-1559757175-5700dde675bc?q=80&w=800&auto=format&fit=crop",
     tagline: "Expert Care for Your Brain & Nervous System",
     description: [
       "Our Neurology department offers specialized care for disorders of the brain, spinal cord, and nervous system. We diagnose and treat a wide range of neurological conditions.",
@@ -113,7 +113,7 @@ const serviceData: Record<string, {
   },
   orthopedics: {
     title: "Orthopedics",
-    image: orthopedicsImg,
+    image: "https://image2url.com/r2/default/images/1773440525219-91c2d568-449a-4c6d-ab5e-ca750bc21a25.png",
     tagline: "Get Back on Your Feet — Stronger",
     description: [
       "Our Orthopedic department provides expert care for bone, joint, and muscle conditions. Whether it's a fracture, chronic joint pain, or sports injury, our team is equipped to help.",
@@ -145,7 +145,7 @@ const serviceData: Record<string, {
   },
   laboratory: {
     title: "Laboratory",
-    image: laboratoryImg,
+    image: "https://image2url.com/r2/default/images/1773440570989-f69f70f9-06f8-4e0b-9919-dcd038220e66.png",
     tagline: "Accurate Results, Fast Turnaround",
     description: [
       "Our modern laboratory delivers accurate and reliable diagnostic results to support clinical decision-making. We perform a wide range of tests from routine blood work to specialized screenings.",
@@ -177,7 +177,7 @@ const serviceData: Record<string, {
   },
   emergency: {
     title: "Emergency Care",
-    image: emergencyImg,
+    image: "https://image2url.com/r2/default/images/1773441788512-93f12389-523e-4802-bfb4-1099352ffc18.png",
     tagline: "When Every Second Counts",
     description: [
       "Our 24/7 Emergency Care unit is equipped and staffed to handle medical emergencies at any time of day or night. From trauma to acute medical conditions, our emergency team responds swiftly.",
@@ -240,6 +240,7 @@ const ServiceDetail = () => {
             src={service.image}
             alt={service.title}
             className="absolute inset-0 w-full h-full object-cover"
+            referrerPolicy="no-referrer"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/50 to-transparent" />
           <div className="relative z-10 container mx-auto px-6 pb-16 max-w-6xl">
