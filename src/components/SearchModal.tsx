@@ -31,9 +31,20 @@ export function SearchModal({ children }: { children: React.ReactNode }) {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
 
+  const normalizeSearch = (str: string) => {
+    return str
+      .toLowerCase()
+      .replace(/^(dr|mr|mrs|ms|prof|chief|nurse)\.?\s+/i, '')
+      .trim();
+  };
+
   const results = query.trim() === "" 
     ? [] 
-    : searchIndex.filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
+    : searchIndex.filter(item => {
+        const normalizedQuery = normalizeSearch(query);
+        const normalizedTitle = normalizeSearch(item.title);
+        return normalizedTitle.includes(normalizedQuery);
+      });
 
   const handleSelect = (url: string) => {
     setOpen(false);
