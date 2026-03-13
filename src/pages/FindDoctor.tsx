@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { BookAppointmentModal } from "@/components/BookAppointmentModal";
+import { Link } from "react-router-dom";
 
 const doctors = [
   { id: 1, name: "Dr. Adebayo O.", specialty: "Cardiology", experience: "15+ Years", available: "Mon, Wed, Fri" },
@@ -95,11 +95,11 @@ const FindDoctor = () => {
                         <span className="font-medium text-slate-900">{doc.available}</span>
                       </div>
                       
-                      <BookAppointmentModal>
+                      <Link to="/book-appointment">
                         <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                           Book Appointment
                         </Button>
-                      </BookAppointmentModal>
+                      </Link>
                     </div>
                   </motion.div>
                 ))}

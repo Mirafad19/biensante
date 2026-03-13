@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Phone, Calendar, Search, ArrowRight } from "lucide-react";
 import { hero_medical_team_jpg as heroImage } from "@/assets/encodedImages";
-import { BookAppointmentModal } from "./BookAppointmentModal";
 import { Link } from "react-router-dom";
 
 const HeroSection = () => {
@@ -40,15 +39,15 @@ const HeroSection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <BookAppointmentModal>
+            <Link to="/book-appointment">
               <Button
                 size="lg"
-                className="bg-blue-600 text-white hover:bg-blue-700 h-14 px-8 text-base font-semibold rounded-md shadow-sm"
+                className="bg-blue-600 text-white hover:bg-blue-700 h-14 px-8 text-base font-semibold rounded-md shadow-sm w-full sm:w-auto"
               >
                 <Calendar className="w-5 h-5 mr-2" />
                 Book Appointment
               </Button>
-            </BookAppointmentModal>
+            </Link>
             <Link to="/find-doctor">
               <Button
                 variant="outline"

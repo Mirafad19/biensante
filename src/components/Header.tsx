@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SearchModal } from "./SearchModal";
-import { BookAppointmentModal } from "./BookAppointmentModal";
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -101,13 +100,13 @@ const Header = () => {
                 <Search className="w-5 h-5" />
               </button>
             </SearchModal>
-            <BookAppointmentModal>
+            <Link to="/book-appointment">
               <Button
                 className="bg-blue-600 text-white hover:bg-blue-700 rounded-md px-6 font-semibold"
               >
                 Book Appointment
               </Button>
-            </BookAppointmentModal>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -160,11 +159,11 @@ const Header = () => {
             <div className="pt-4 border-t border-slate-100 flex flex-col space-y-3 px-2">
               <Link to="/patient-portal" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-slate-600 py-2">Patient Portal</Link>
               <Link to="/patient-portal" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-slate-600 py-2">Pay Bill</Link>
-              <BookAppointmentModal>
+              <Link to="/book-appointment" onClick={() => setMobileOpen(false)}>
                 <Button className="w-full bg-blue-600 text-white hover:bg-blue-700 rounded-md font-semibold justify-center">
                   Book Appointment
                 </Button>
-              </BookAppointmentModal>
+              </Link>
             </div>
           </div>
         )}

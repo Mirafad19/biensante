@@ -26,7 +26,7 @@ import {
   getDoc
 } from "firebase/firestore";
 import { toast } from "sonner";
-import { BookAppointmentModal } from "@/components/BookAppointmentModal";
+import { Link } from "react-router-dom";
 
 interface UserData {
   firstName: string;
@@ -218,9 +218,9 @@ const PatientPortal = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                <BookAppointmentModal>
+                <Link to="/book-appointment" className="w-full">
                   <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">Book New Appointment</Button>
-                </BookAppointmentModal>
+                </Link>
               </CardFooter>
             </Card>
 
