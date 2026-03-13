@@ -54,7 +54,7 @@ const About = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <Header />
-      <main className="pt-24">
+      <main>
         {/* Hero Banner */}
         <section className="relative py-24 bg-slate-900 overflow-hidden">
           <div className="absolute inset-0 opacity-20">

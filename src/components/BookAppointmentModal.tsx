@@ -33,6 +33,7 @@ export function BookAppointmentModal({ children }: { children: React.ReactNode }
     const notes = formData.get("notes") as string;
 
     try {
+      // 1. Save to Firebase Database (for Patient Portal & Admin Dashboard)
       const appointmentData = {
         patientName: `${firstName} ${lastName}`,
         patientEmail: email,
@@ -46,6 +47,30 @@ export function BookAppointmentModal({ children }: { children: React.ReactNode }
       };
 
       await addDoc(collection(db, "appointments"), appointmentData);
+
+      // 2. Send Email Notification via Formspree (Optional)
+      // Replace "YOUR_FORMSPREE_ID" with your actual Formspree form ID (e.g., "xqk...").
+      // You can get this by signing up at formspree.io
+      const formspreeEndpoint = "https://formspree.io/f/YOUR_FORMSPREE_ID"; 
+      
+      if (formspreeEndpoint !== "https://formspree.io/f/YOUR_FORMSPREE_ID") {
+        await fetch(formspreeEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            subject: `New Appointment Request from ${firstName} ${lastName}`,
+            name: `${firstName} ${lastName}`,
+            email: email,
+            phone: phone,
+            department: department,
+            preferredDate: date,
+            notes: notes,
+          }),
+        });
+      }
 
       setIsSubmitting(false);
       setOpen(false);
@@ -66,7 +91,7 @@ export function BookAppointmentModal({ children }: { children: React.ReactNode }
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">Book an Appointment</DialogTitle>
           <DialogDescription>

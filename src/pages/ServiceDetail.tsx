@@ -233,7 +233,7 @@ const ServiceDetail = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <Header />
-      <main className="pt-24">
+      <main>
         {/* Hero Banner */}
         <section className="relative h-[50vh] min-h-[400px] flex items-end overflow-hidden">
           <img

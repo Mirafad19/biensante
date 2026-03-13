@@ -11,7 +11,7 @@ const PatientsVisitors = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <Header />
-      <main className="pt-24">
+      <main>
         {/* Hero Section */}
         <section className="bg-blue-700 py-20 text-white">
           <div className="container mx-auto px-6 max-w-6xl">
