@@ -23,7 +23,7 @@ const FAQSection = () => {
   const faqsRight = [
     {
       question: "What specialist services do you offer?",
-      answer: "We offer Cardiology, Pulmonology, Neurology, Orthopedics, Gynecology & Obstetrics, Pediatrics, and comprehensive Laboratory Diagnostics.",
+      answer: "We offer Cardiology, Pulmonary, Neurology, Orthopedics, Gynecology & Obstetrics, Pediatrics, and comprehensive Laboratory Diagnostics.",
     },
     {
       question: "Where is BienSanté Hospital located?",

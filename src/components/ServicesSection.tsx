@@ -1,4 +1,4 @@
-import { ArrowRight, HeartPulse, Brain, Bone, Stethoscope, Baby, Microscope } from "lucide-react";
+import { ArrowRight, HeartPulse, Brain, Bone, Stethoscope, Activity, Microscope } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const ServicesSection = () => {
@@ -13,7 +13,7 @@ const ServicesSection = () => {
     },
     {
       icon: <Stethoscope className="w-8 h-8" />,
-      title: "Pulmonology",
+      title: "Pulmonary",
       slug: "pulmonary",
       description: "Lung health services including pulmonary function tests, asthma and COPD management.",
     },
@@ -30,10 +30,10 @@ const ServicesSection = () => {
       description: "Bone, joint, and muscle care — from fracture treatment to joint replacement surgeries.",
     },
     {
-      icon: <Baby className="w-8 h-8" />,
-      title: "Maternity & Women's Health",
-      slug: "maternity",
-      description: "Complete antenatal and postnatal care, gynecological services, and family planning.",
+      icon: <Activity className="w-8 h-8" />,
+      title: "Emergency Care",
+      slug: "emergency",
+      description: "24/7 rapid response for critical conditions, trauma, and urgent medical needs.",
     },
     {
       icon: <Microscope className="w-8 h-8" />,
@@ -55,12 +55,6 @@ const ServicesSection = () => {
               BienSanté Hospital offers a comprehensive range of medical specialties. Our multidisciplinary teams work together to provide you with the highest standard of care.
             </p>
           </div>
-          <button 
-            onClick={() => navigate("/services/cardiology")}
-            className="hidden md:inline-flex items-center text-blue-600 font-semibold hover:text-blue-800 transition-colors"
-          >
-            View All Specialties <ArrowRight className="w-4 h-4 ml-2" />
-          </button>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
@@ -91,15 +85,6 @@ const ServicesSection = () => {
               </button>
             </div>
           ))}
-        </div>
-        
-        <div className="mt-12 md:hidden">
-          <button 
-            onClick={() => navigate("/services/cardiology")}
-            className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-800 transition-colors"
-          >
-            View All Specialties <ArrowRight className="w-4 h-4 ml-2" />
-          </button>
         </div>
       </div>
     </section>
