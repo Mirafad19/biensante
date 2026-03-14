@@ -3,8 +3,9 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Heart, Clock, Users, Shield, Stethoscope, Award, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
-import { about_doctor_jpg as aboutImg } from "@/assets/encodedImages";
 import { useNavigate } from "react-router-dom";
+
+const aboutImg = "https://image2url.com/r2/default/images/1773443576364-d04f6fcb-8f16-4ccd-ae22-ef64ba6ca944.jpg";
 
 const values = [
   {
@@ -100,6 +101,7 @@ const About = () => {
                     src={aboutImg}
                     alt="Doctor at BienSanté Hospital"
                     className="rounded-xl shadow-lg w-full object-cover aspect-[4/5]"
+                    referrerPolicy="no-referrer"
                   />
                   <div className="absolute -bottom-8 -right-8 bg-blue-700 text-white rounded-xl p-8 shadow-xl border-4 border-white">
                     <div className="text-5xl font-bold mb-1">15+</div>

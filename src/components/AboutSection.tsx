@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { about_doctor_jpg as aboutImg } from "@/assets/encodedImages";
+
+const aboutImg = "https://image2url.com/r2/default/images/1773443576364-d04f6fcb-8f16-4ccd-ae22-ef64ba6ca944.jpg";
 
 const features = [
   "Comprehensive, patient-centered care",
@@ -31,6 +32,7 @@ const AboutSection = () => {
                 src={aboutImg}
                 alt="Doctor consultation at BienSanté Hospital"
                 className="w-full h-auto object-cover aspect-[4/3] md:aspect-[4/5]"
+                referrerPolicy="no-referrer"
               />
             </div>
 
