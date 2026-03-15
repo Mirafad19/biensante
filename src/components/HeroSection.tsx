@@ -8,7 +8,7 @@ const HeroSection = () => {
   return (
     <section className="relative bg-slate-50">
       {/* Background Image with Overlay */}
-      <div className="absolute inset-0 z-0 h-[600px] lg:h-[700px]">
+      <div className="absolute inset-0 z-0 h-[500px] md:h-[600px] lg:h-[700px]">
         <img
           src={heroImage}
           alt="Professional medical team at BienSanté Hospital"
@@ -18,7 +18,7 @@ const HeroSection = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 pt-32 pb-20 lg:pt-48 lg:pb-32 h-[600px] lg:h-[700px] flex flex-col justify-center">
+      <div className="relative z-10 container mx-auto px-6 pt-24 pb-20 md:pt-32 lg:pt-48 lg:pb-32 min-h-[500px] md:h-[600px] lg:h-[700px] flex flex-col justify-center">
         <motion.div
           className="max-w-2xl"
           initial={{ opacity: 0, y: 20 }}
@@ -63,7 +63,7 @@ const HeroSection = () => {
       </div>
 
       {/* Quick Action Cards (Overlapping) */}
-      <div className="relative z-20 container mx-auto px-6 -mt-16 lg:-mt-24 mb-16">
+      <div className="relative z-20 container mx-auto px-6 -mt-8 md:-mt-16 lg:-mt-24 mb-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
