@@ -33,9 +33,10 @@ const MapSection = () => {
                   <Clock className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900">Working Hours</h4>
-                  <p className="text-slate-600">Emergency: 24/7</p>
-                  <p className="text-slate-600">Outpatient: Mon - Sat, 8:00 AM - 8:00 PM</p>
+                  <h4 className="font-bold text-slate-900">Hours</h4>
+                  <p className="text-slate-600"><strong>Emergency:</strong> 24/7</p>
+                  <p className="text-slate-600"><strong>Outpatient:</strong> Mon - Sat, 8:00 AM - 8:00 PM</p>
+                  <p className="text-slate-600 text-sm mt-1"><strong>Visiting:</strong> Weekdays (10am-12pm, 5pm-8:45pm), Weekends (10am-8pm)</p>
                 </div>
               </div>
 

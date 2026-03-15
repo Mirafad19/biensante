@@ -31,7 +31,7 @@ const FAQSection = () => {
     },
     {
       question: "What are the visiting hours?",
-      answer: "Weekdays: Morning 10:00 AM – 12:00 PM, Evening 5:00 PM – 8:45 PM. Weekends: 10:00 AM – 8:00 PM. Antenatal Clinic: Tuesdays only, 9:00 AM – 1:00 PM.",
+      answer: "Our visiting hours are: \n\nWeekdays: \n• Morning: 10:00 AM – 12:00 PM \n• Evening: 5:00 PM – 8:45 PM \n\nWeekends: \n• 10:00 AM – 8:00 PM \n\nAntenatal Clinic: \n• Tuesdays only, from 9:00 AM – 1:00 PM.",
     },
     {
       question: "Do you handle maternity and childbirth?",

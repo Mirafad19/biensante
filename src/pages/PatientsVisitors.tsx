@@ -47,9 +47,13 @@ const PatientsVisitors = () => {
                   <h2 className="text-2xl font-bold text-slate-900">Visiting Hours</h2>
                 </div>
                 <div className="space-y-4 text-slate-600">
-                  <p><strong>General Wards:</strong> 4:00 PM – 6:00 PM daily</p>
-                  <p><strong>ICU/Emergency:</strong> Restricted. Immediate family only, brief visits.</p>
-                  <p><strong>Maternity:</strong> 10:00 AM – 12:00 PM & 4:00 PM – 6:00 PM</p>
+                  <p><strong>Weekdays:</strong></p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Morning: 10:00 AM – 12:00 PM</li>
+                    <li>Evening: 5:00 PM – 8:45 PM</li>
+                  </ul>
+                  <p><strong>Weekends:</strong> 10:00 AM – 8:00 PM</p>
+                  <p><strong>Antenatal Clinic:</strong> Tuesdays only, 9:00 AM – 1:00 PM</p>
                   <div className="mt-4 p-4 bg-amber-50 rounded-lg text-amber-800 text-sm">
                     Please note: Only two visitors are allowed per patient at a time to ensure a quiet healing environment.
                   </div>

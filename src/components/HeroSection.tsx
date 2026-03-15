@@ -52,7 +52,7 @@ const HeroSection = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="bg-white/10 text-white border-white/20 hover:bg-white/20 h-14 px-8 text-base font-semibold rounded-md backdrop-blur-sm w-full sm:w-auto"
+                className="bg-white text-blue-600 border-blue-600 hover:bg-blue-50 h-14 px-8 text-base font-semibold rounded-md w-full sm:w-auto"
               >
                 <Search className="w-5 h-5 mr-2" />
                 Find a Doctor
