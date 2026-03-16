@@ -44,7 +44,7 @@ const AboutSection = () => {
               transition={{ delay: 0.4 }}
               className="absolute -bottom-8 -right-4 md:-right-8 bg-blue-600 text-white rounded-lg p-6 shadow-xl max-w-[200px]"
             >
-              <div className="text-4xl font-bold mb-1">15+</div>
+              <div className="text-4xl font-bold mb-1">8+</div>
               <div className="text-sm text-blue-100 font-medium leading-tight">Years of Excellence in Healthcare</div>
             </motion.div>
           </motion.div>

@@ -10,8 +10,8 @@ import { Link } from "react-router-dom";
 
 const doctors = [
   { id: 1, name: "Dr. Olumide Banjo", specialty: "Cardiology", experience: "15+ Years", available: "Mon, Wed, Fri" },
-  { id: 2, name: "Dr. Ahmed", specialty: "Neurology", experience: "12+ Years", available: "Tue, Thu, Sat" },
-  { id: 3, name: "Dr. Adenuga Oluwasanmi", specialty: "Orthopedics", experience: "18+ Years", available: "Mon - Fri" },
+  { id: 2, name: "Dr. Ahmed", specialty: "Neurology", experience: "5+ Years", available: "Tue, Thu, Sat" },
+  { id: 3, name: "Dr. Adenuga Oluwasanmi", specialty: "Orthopedics", experience: "5+ Years", available: "Mon - Fri" },
 ];
 
 const FindDoctor = () => {

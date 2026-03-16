@@ -21,12 +21,12 @@ const values = [
   {
     icon: Stethoscope,
     title: "Qualified Professionals",
-    description: "Our team of 15+ experienced doctors and specialists bring expertise across cardiology, neurology, orthopedics and more.",
+    description: "Our team of 5+ experienced doctors and specialists bring expertise across cardiology, neurology, orthopedics and more.",
   },
   {
     icon: Award,
-    title: "15+ Years of Trust",
-    description: "Serving the Shasha community for over 15 years with consistent, reliable, and high-standard medical services.",
+    title: "8+ Years of Trust",
+    description: "Serving the Shasha community since 2017 with consistent, reliable, and high-standard medical services.",
   },
   {
     icon: Clock,
@@ -41,7 +41,7 @@ const values = [
 ];
 
 const milestones = [
-  { year: "2011", event: "BienSanté Hospital founded in Shasha, Lagos" },
+  { year: "2017", event: "BienSanté Hospital founded in Shasha, Lagos" },
   { year: "2016", event: "Expanded to 8 specialized departments" },
   { year: "2019", event: "Partnered with 13+ HMO providers" },
   { year: "2022", event: "Upgraded laboratory with modern diagnostic equipment" },
@@ -80,7 +80,7 @@ const About = () => {
                 About BienSanté Hospital
               </h1>
               <p className="text-xl text-slate-300 max-w-2xl leading-relaxed">
-                Over 15 years of compassionate, affordable, and quality healthcare for the people of Shasha, Lagos and beyond.
+                Providing compassionate, affordable, and quality healthcare for the people of Shasha, Lagos and beyond since 2017.
               </p>
             </motion.div>
           </div>
@@ -104,7 +104,7 @@ const About = () => {
                     referrerPolicy="no-referrer"
                   />
                   <div className="absolute -bottom-8 -right-8 bg-blue-700 text-white rounded-xl p-8 shadow-xl border-4 border-white">
-                    <div className="text-5xl font-bold mb-1">15+</div>
+                    <div className="text-5xl font-bold mb-1">8+</div>
                     <div className="text-sm font-medium text-blue-100 uppercase tracking-wider">Years of Excellence in Healthcare</div>
                   </div>
                 </div>
