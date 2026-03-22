@@ -32,7 +32,11 @@ import {
   TrendingUp,
   Heart,
   Thermometer,
-  Weight
+  Weight,
+  Settings,
+  Bell,
+  Search,
+  Globe
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -42,7 +46,9 @@ import {
   createUserWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  User as FirebaseUser
+  User as FirebaseUser,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "firebase/auth";
 import { 
   collection, 
@@ -262,6 +268,39 @@ const PatientPortal = () => {
     } catch (error) {
       const err = error as Error;
       toast.error("Registration failed", { description: err.message });
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsActionLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // Check if user document exists, if not create it
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userDoc.exists()) {
+        const [firstName, ...lastNameParts] = (user.displayName || "").split(" ");
+        const lastName = lastNameParts.join(" ");
+        
+        const userProfile = {
+          uid: user.uid,
+          email: user.email,
+          firstName: firstName || "User",
+          lastName: lastName || "",
+          role: "patient",
+          patientId: `BS-${Math.floor(100000 + Math.random() * 900000)}`,
+          createdAt: serverTimestamp(),
+        };
+        await setDoc(doc(db, "users", user.uid), userProfile);
+      }
+      toast.success("Signed in with Google successfully");
+    } catch (error) {
+      const err = error as Error;
+      toast.error("Google Sign-in failed", { description: err.message });
     } finally {
       setIsActionLoading(false);
     }
@@ -1186,6 +1225,28 @@ const PatientPortal = () => {
                       </div>
                     ) : "Sign In to Portal"}
                   </Button>
+
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator className="w-full" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-slate-400">Or continue with</span>
+                    </div>
+                  </div>
+
+                  <Button 
+                    variant="outline" 
+                    type="button" 
+                    className="w-full h-12 border-slate-200 hover:bg-slate-50 font-semibold"
+                    onClick={handleGoogleSignIn}
+                    disabled={isActionLoading}
+                  >
+                    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                      <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                    </svg>
+                    Google
+                  </Button>
                 </form>
               </TabsContent>
 
@@ -1211,6 +1272,28 @@ const PatientPortal = () => {
                   </div>
                   <Button type="submit" className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/20 mt-4" disabled={isActionLoading}>
                     {isActionLoading ? "Creating Account..." : "Create My Account"}
+                  </Button>
+
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator className="w-full" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-slate-400">Or continue with</span>
+                    </div>
+                  </div>
+
+                  <Button 
+                    variant="outline" 
+                    type="button" 
+                    className="w-full h-12 border-slate-200 hover:bg-slate-50 font-semibold"
+                    onClick={handleGoogleSignIn}
+                    disabled={isActionLoading}
+                  >
+                    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                      <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                    </svg>
+                    Google
                   </Button>
                 </form>
               </TabsContent>
