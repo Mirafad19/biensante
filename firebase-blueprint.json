@@ -34,6 +34,81 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["patientName", "patientEmail", "specialty", "date", "status", "createdAt"]
+    },
+    "LabResult": {
+      "title": "Lab Result",
+      "description": "A medical laboratory test result",
+      "type": "object",
+      "properties": {
+        "patientUid": { "type": "string" },
+        "testName": { "type": "string" },
+        "category": { "type": "string" },
+        "value": { "type": "string" },
+        "unit": { "type": "string" },
+        "referenceRange": { "type": "string" },
+        "status": { "type": "string", "enum": ["normal", "abnormal", "critical"] },
+        "doctorNotes": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientUid", "testName", "value", "status", "date"]
+    },
+    "Prescription": {
+      "title": "Prescription",
+      "description": "A medication prescription",
+      "type": "object",
+      "properties": {
+        "patientUid": { "type": "string" },
+        "medicationName": { "type": "string" },
+        "dosage": { "type": "string" },
+        "frequency": { "type": "string" },
+        "duration": { "type": "string" },
+        "doctorName": { "type": "string" },
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["active", "completed", "discontinued"] }
+      },
+      "required": ["patientUid", "medicationName", "dosage", "status"]
+    },
+    "Vital": {
+      "title": "Vital Sign",
+      "description": "A recorded health vital sign",
+      "type": "object",
+      "properties": {
+        "patientUid": { "type": "string" },
+        "type": { "type": "string", "enum": ["BP", "Weight", "HeartRate", "Temp", "Oxygen"] },
+        "value": { "type": "string" },
+        "unit": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientUid", "type", "value", "date"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A secure message between patient and care team",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean" },
+        "attachments": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["senderId", "receiverId", "content", "timestamp"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "A billing invoice for medical services",
+      "type": "object",
+      "properties": {
+        "patientUid": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["paid", "unpaid", "pending", "overdue"] },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientUid", "amount", "status", "dueDate", "createdAt"]
     }
   },
   "firestore": {
@@ -44,6 +119,26 @@
     "/appointments/{appointmentId}": {
       "schema": "Appointment",
       "description": "Appointment records"
+    },
+    "/lab_results/{resultId}": {
+      "schema": "LabResult",
+      "description": "Patient lab results"
+    },
+    "/prescriptions/{prescriptionId}": {
+      "schema": "Prescription",
+      "description": "Patient prescriptions"
+    },
+    "/vitals/{vitalId}": {
+      "schema": "Vital",
+      "description": "Patient vital signs tracking"
+    },
+    "/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Secure patient-doctor messages"
+    },
+    "/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Billing and payment records"
     }
   }
 }

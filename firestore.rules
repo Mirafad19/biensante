@@ -31,6 +31,58 @@ service cloud.firestore {
     //
     // ===============================================================
 
+    // Collection: lab_results
+    // Fields:
+    //   - patientUid: string (required)
+    //   - testName: string (required)
+    //   - category: string (optional)
+    //   - value: string (required)
+    //   - unit: string (optional)
+    //   - referenceRange: string (optional)
+    //   - status: string (required, enum: ['normal', 'abnormal', 'critical'])
+    //   - doctorNotes: string (optional)
+    //   - date: timestamp (required)
+    //
+    // Collection: prescriptions
+    // Fields:
+    //   - patientUid: string (required)
+    //   - medicationName: string (required)
+    //   - dosage: string (required)
+    //   - frequency: string (optional)
+    //   - duration: string (optional)
+    //   - doctorName: string (optional)
+    //   - startDate: string (optional)
+    //   - endDate: string (optional)
+    //   - status: string (required, enum: ['active', 'completed', 'discontinued'])
+    //
+    // Collection: vitals
+    // Fields:
+    //   - patientUid: string (required)
+    //   - type: string (required, enum: ['BP', 'Weight', 'HeartRate', 'Temp', 'Oxygen'])
+    //   - value: string (required)
+    //   - unit: string (optional)
+    //   - date: timestamp (required)
+    //
+    // Collection: messages
+    // Fields:
+    //   - senderId: string (required)
+    //   - receiverId: string (required)
+    //   - content: string (required)
+    //   - timestamp: timestamp (required)
+    //   - read: bool (optional)
+    //   - attachments: list (optional)
+    //
+    // Collection: invoices
+    // Fields:
+    //   - patientUid: string (required)
+    //   - amount: number (required)
+    //   - status: string (required, enum: ['paid', 'unpaid', 'pending', 'overdue'])
+    //   - description: string (optional)
+    //   - dueDate: string (required)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
     // ===============================================================
     // Helper Functions
     // ===============================================================
@@ -47,6 +99,10 @@ service cloud.firestore {
       return isAuthenticated() &&
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
           (request.auth.token.email == "fadahunsi.miracle@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isDoctor() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
     }
 
     function isValidEmail(email) {
@@ -73,12 +129,54 @@ service cloud.firestore {
              data.createdAt is timestamp;
     }
 
+    function isValidLabResult(data) {
+      return data.keys().hasAll(['patientUid', 'testName', 'value', 'status', 'date']) &&
+             data.patientUid is string &&
+             data.testName is string && data.testName.size() > 0 &&
+             data.value is string &&
+             data.status in ['normal', 'abnormal', 'critical'] &&
+             data.date is timestamp;
+    }
+
+    function isValidPrescription(data) {
+      return data.keys().hasAll(['patientUid', 'medicationName', 'dosage', 'status']) &&
+             data.patientUid is string &&
+             data.medicationName is string && data.medicationName.size() > 0 &&
+             data.dosage is string &&
+             data.status in ['active', 'completed', 'discontinued'];
+    }
+
+    function isValidVital(data) {
+      return data.keys().hasAll(['patientUid', 'type', 'value', 'date']) &&
+             data.patientUid is string &&
+             data.type in ['BP', 'Weight', 'HeartRate', 'Temp', 'Oxygen'] &&
+             data.value is string &&
+             data.date is timestamp;
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['senderId', 'receiverId', 'content', 'timestamp']) &&
+             data.senderId is string &&
+             data.receiverId is string &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 5000 &&
+             data.timestamp is timestamp;
+    }
+
+    function isValidInvoice(data) {
+      return data.keys().hasAll(['patientUid', 'amount', 'status', 'dueDate', 'createdAt']) &&
+             data.patientUid is string &&
+             data.amount is number && data.amount >= 0 &&
+             data.status in ['paid', 'unpaid', 'pending', 'overdue'] &&
+             data.dueDate is string &&
+             data.createdAt is timestamp;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
 
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId) || isAdmin() || isDoctor();
       allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
                     (isOwner(userId) && request.resource.data.role == 'patient' || isAdmin());
       allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
@@ -86,18 +184,38 @@ service cloud.firestore {
     }
 
     match /appointments/{appointmentId} {
-      // Patients can see their own appointments. Admins can see all.
-      allow read: if isAdmin() || (isAuthenticated() && resource.data.patientUid == request.auth.uid);
-      
-      // Anyone can request an appointment (even unauthenticated, if we want to allow guest requests)
-      // But let's require auth for now to keep it secure, or allow unauthenticated if user wants.
-      // User said "inbuilt form", usually these are public. 
-      // Let's allow unauthenticated create but with strict validation.
+      allow read: if isAdmin() || isDoctor() || (isAuthenticated() && resource.data.patientUid == request.auth.uid);
       allow create: if isValidAppointment(request.resource.data) && 
                     (!('patientUid' in request.resource.data) || request.resource.data.patientUid == null || (isAuthenticated() && request.resource.data.patientUid == request.auth.uid));
-      
-      allow update: if isAdmin() || (isAuthenticated() && resource.data.patientUid == request.auth.uid && isValidAppointment(request.resource.data));
+      allow update: if isAdmin() || isDoctor() || (isAuthenticated() && resource.data.patientUid == request.auth.uid && isValidAppointment(request.resource.data));
       allow delete: if isAdmin();
+    }
+
+    match /lab_results/{resultId} {
+      allow read: if isAdmin() || isDoctor() || (isAuthenticated() && resource.data.patientUid == request.auth.uid);
+      allow write: if isAdmin() || isDoctor();
+    }
+
+    match /prescriptions/{prescriptionId} {
+      allow read: if isAdmin() || isDoctor() || (isAuthenticated() && resource.data.patientUid == request.auth.uid);
+      allow write: if isAdmin() || isDoctor();
+    }
+
+    match /vitals/{vitalId} {
+      allow read: if isAdmin() || isDoctor() || (isAuthenticated() && resource.data.patientUid == request.auth.uid);
+      allow create: if (isAdmin() || isDoctor() || (isAuthenticated() && request.resource.data.patientUid == request.auth.uid)) && isValidVital(request.resource.data);
+      allow update, delete: if isAdmin() || isDoctor();
+    }
+
+    match /messages/{messageId} {
+      allow read: if isAuthenticated() && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid && isValidMessage(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.receiverId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+    }
+
+    match /invoices/{invoiceId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.patientUid == request.auth.uid);
+      allow write: if isAdmin();
     }
   }
 }
