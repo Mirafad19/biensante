@@ -20,6 +20,8 @@ import {
   MicOff,
   VideoOff,
   Send,
+  CheckCheck,
+  Paperclip,
   Download,
   Filter,
   MoreVertical,
@@ -457,9 +459,9 @@ const PatientPortal = () => {
         ]);
 
         setInvoices([
-          { id: 'INV-001', amount: 150.00, status: 'paid', description: 'General Consultation', dueDate: '2026-03-15' },
-          { id: 'INV-002', amount: 45.00, status: 'unpaid', description: 'Lab Processing Fee', dueDate: '2026-04-01' },
-          { id: 'INV-003', amount: 200.00, status: 'pending', description: 'Specialist Referral', dueDate: '2026-04-10' }
+          { id: 'INV-001', amount: 75000.00, status: 'paid', description: 'General Consultation', dueDate: '2026-03-15' },
+          { id: 'INV-002', amount: 22500.00, status: 'unpaid', description: 'Lab Processing Fee', dueDate: '2026-04-01' },
+          { id: 'INV-003', amount: 100000.00, status: 'pending', description: 'Specialist Referral', dueDate: '2026-04-10' }
         ]);
       } else {
         setUserData(null);
@@ -1129,7 +1131,7 @@ const PatientPortal = () => {
                       <Card className="bg-slate-900 text-white border-none p-6 relative overflow-hidden group">
                         <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all"></div>
                         <p className="text-slate-400 text-sm font-medium">Total Outstanding</p>
-                        <h2 className="text-4xl font-bold mt-2 tracking-tight">$245.00</h2>
+                        <h2 className="text-4xl font-bold mt-2 tracking-tight">₦245,000.00</h2>
                         <Button 
                           className="w-full mt-6 bg-primary hover:bg-primary/90 text-white font-bold h-11 rounded-xl shadow-lg shadow-primary/20"
                           onClick={() => {
@@ -1143,12 +1145,12 @@ const PatientPortal = () => {
                               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                               <span>Processing...</span>
                             </div>
-                          ) : "Secure Payment"}
+                          ) : "Pay via Paystack"}
                         </Button>
                       </Card>
                       <Card className="border-none shadow-sm p-6 flex flex-col justify-center bg-white">
                         <p className="text-slate-500 text-sm font-medium">Last Payment</p>
-                        <h2 className="text-3xl font-bold mt-1 text-slate-900">$150.00</h2>
+                        <h2 className="text-3xl font-bold mt-1 text-slate-900">₦150,000.00</h2>
                         <div className="mt-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
                           <CheckCircle2 className="w-3 h-3 mr-1" />
                           Settled on Mar 15
@@ -1193,7 +1195,7 @@ const PatientPortal = () => {
                                     </div>
                                   </div>
                                   <div className="flex items-center space-x-6">
-                                    <p className="font-bold text-slate-900 text-sm">${inv.amount.toFixed(2)}</p>
+                                    <p className="font-bold text-slate-900 text-sm">₦{inv.amount.toLocaleString()}</p>
                                     <Badge className={`h-6 text-[10px] font-bold px-2.5 rounded-full ${
                                       inv.status === 'paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                                       inv.status === 'unpaid' ? 'bg-red-50 text-red-600 border-red-100' :
@@ -1224,11 +1226,41 @@ const PatientPortal = () => {
                               </div>
                               <div className="flex items-center space-x-3">
                                 <div className="w-10 h-7 bg-slate-900 rounded-md flex items-center justify-center">
-                                  <span className="text-[8px] font-bold text-white italic">VISA</span>
+                                  <span className="text-[8px] font-bold text-white italic">CARD</span>
                                 </div>
                                 <div>
-                                  <p className="text-xs font-bold text-slate-900">•••• 4242</p>
-                                  <p className="text-[10px] text-slate-500">Expires 12/26</p>
+                                  <p className="text-xs font-bold text-slate-900">Paystack / Flutterwave</p>
+                                  <p className="text-[10px] text-slate-500">Card, Transfer, USSD</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="p-4 rounded-2xl border border-slate-100 bg-white relative group cursor-pointer hover:border-primary/30 transition-all">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-7 bg-slate-100 rounded-md flex items-center justify-center">
+                                  <Globe className="w-4 h-4 text-slate-400" />
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-slate-900">Bank Transfer</p>
+                                  <p className="text-[10px] text-slate-500">Direct NGN Transfer</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bank Details</p>
+                              <div className="space-y-1">
+                                <div className="flex justify-between text-[10px]">
+                                  <span className="text-slate-500">Bank:</span>
+                                  <span className="font-bold text-slate-900">Zenith Bank</span>
+                                </div>
+                                <div className="flex justify-between text-[10px]">
+                                  <span className="text-slate-500">Account:</span>
+                                  <span className="font-bold text-slate-900">1234567890</span>
+                                </div>
+                                <div className="flex justify-between text-[10px]">
+                                  <span className="text-slate-500">Name:</span>
+                                  <span className="font-bold text-slate-900">BienSanté Healthcare</span>
                                 </div>
                               </div>
                             </div>
@@ -1246,10 +1278,10 @@ const PatientPortal = () => {
                               <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                                 <ShieldCheck className="w-4 h-4 text-blue-600" />
                               </div>
-                              <h4 className="text-xs font-bold text-slate-800">Secure Billing</h4>
+                              <h4 className="text-xs font-bold text-slate-800">Secure NGN Billing</h4>
                             </div>
                             <p className="text-[10px] text-slate-500 leading-relaxed">
-                              Your payments are processed securely using bank-grade encryption. BienSanté does not store your full card details.
+                              Your payments are processed securely via Paystack or Flutterwave. We support local cards, bank transfers, and USSD.
                             </p>
                           </CardContent>
                         </Card>
