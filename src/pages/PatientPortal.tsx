@@ -36,7 +36,8 @@ import {
   Settings,
   Bell,
   Search,
-  Globe
+  Globe,
+  Plus
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -160,8 +161,11 @@ const PatientPortal = () => {
   ];
 
   useEffect(() => {
+    let unsubAppointments: (() => void) | undefined;
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      
       if (currentUser) {
         // Fetch user profile data
         try {
@@ -174,18 +178,22 @@ const PatientPortal = () => {
         }
 
         // Fetch appointments
-        const aptsQuery = query(
-          collection(db, "appointments"),
-          where("patientUid", "==", currentUser.uid),
-          orderBy("date", "desc"),
-          limit(5)
-        );
-        
-        const unsubAppointments = onSnapshot(aptsQuery, (snapshot) => {
-          setAppointments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Appointment[]);
-        }, (error) => {
-          handleFirestoreError(error, OperationType.LIST, "appointments");
-        });
+        try {
+          const aptsQuery = query(
+            collection(db, "appointments"),
+            where("patientUid", "==", currentUser.uid),
+            orderBy("date", "desc"),
+            limit(5)
+          );
+          
+          unsubAppointments = onSnapshot(aptsQuery, (snapshot) => {
+            setAppointments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Appointment[]);
+          }, (error) => {
+            handleFirestoreError(error, OperationType.LIST, "appointments");
+          });
+        } catch (error) {
+          console.error("Error setting up appointments listener:", error);
+        }
 
         // Mock data for demo purposes (if collections are empty)
         setLabResults([
@@ -210,16 +218,21 @@ const PatientPortal = () => {
           { id: 'INV-002', amount: 45.00, status: 'unpaid', description: 'Lab Processing Fee', dueDate: '2026-04-01' },
           { id: 'INV-003', amount: 200.00, status: 'pending', description: 'Specialist Referral', dueDate: '2026-04-10' }
         ]);
-
-        return () => unsubAppointments();
       } else {
         setUserData(null);
         setAppointments([]);
+        if (unsubAppointments) {
+          unsubAppointments();
+          unsubAppointments = undefined;
+        }
       }
       setIsLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (unsubAppointments) unsubAppointments();
+    };
   }, []);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
