@@ -81,6 +81,17 @@ service cloud.firestore {
     //   - dueDate: string (required)
     //   - createdAt: timestamp (required)
     //
+    // Collection: telehealth_sessions
+    // Fields:
+    //   - patientUid: string (required)
+    //   - doctorUid: string (optional)
+    //   - doctorName: string (required)
+    //   - status: string (required, enum: ['scheduled', 'active', 'completed', 'cancelled'])
+    //   - startTime: timestamp (required)
+    //   - endTime: timestamp (optional)
+    //   - meetingLink: string (optional)
+    //   - roomName: string (required)
+    //
     // ===============================================================
 
     // ===============================================================
@@ -171,6 +182,15 @@ service cloud.firestore {
              data.createdAt is timestamp;
     }
 
+    function isValidTelehealthSession(data) {
+      return data.keys().hasAll(['patientUid', 'doctorName', 'status', 'startTime', 'roomName']) &&
+             data.patientUid is string &&
+             data.doctorName is string &&
+             data.status in ['scheduled', 'active', 'completed', 'cancelled'] &&
+             data.startTime is timestamp &&
+             data.roomName is string;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -216,6 +236,11 @@ service cloud.firestore {
     match /invoices/{invoiceId} {
       allow read: if isAdmin() || (isAuthenticated() && resource.data.patientUid == request.auth.uid);
       allow write: if isAdmin();
+    }
+
+    match /telehealth_sessions/{sessionId} {
+      allow read: if isAdmin() || isDoctor() || (isAuthenticated() && resource.data.patientUid == request.auth.uid);
+      allow write: if isAdmin() || isDoctor();
     }
   }
 }

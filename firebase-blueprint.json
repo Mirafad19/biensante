@@ -109,6 +109,22 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["patientUid", "amount", "status", "dueDate", "createdAt"]
+    },
+    "TelehealthSession": {
+      "title": "Telehealth Session",
+      "description": "A virtual medical consultation session",
+      "type": "object",
+      "properties": {
+        "patientUid": { "type": "string" },
+        "doctorUid": { "type": "string" },
+        "doctorName": { "type": "string" },
+        "status": { "type": "string", "enum": ["scheduled", "active", "completed", "cancelled"] },
+        "startTime": { "type": "string", "format": "date-time" },
+        "endTime": { "type": "string", "format": "date-time" },
+        "meetingLink": { "type": "string" },
+        "roomName": { "type": "string" }
+      },
+      "required": ["patientUid", "doctorName", "status", "startTime", "roomName"]
     }
   },
   "firestore": {
@@ -139,6 +155,10 @@
     "/invoices/{invoiceId}": {
       "schema": "Invoice",
       "description": "Billing and payment records"
+    },
+    "/telehealth_sessions/{sessionId}": {
+      "schema": "TelehealthSession",
+      "description": "Virtual consultation sessions"
     }
   }
 }

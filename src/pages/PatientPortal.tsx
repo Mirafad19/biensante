@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,7 +65,9 @@ import {
   getDoc,
   orderBy,
   limit,
-  addDoc
+  addDoc,
+  updateDoc,
+  Timestamp
 } from "firebase/firestore";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -126,9 +128,23 @@ interface Prescription {
 interface Message {
   id: string;
   senderId: string;
+  receiverId: string;
   content: string;
-  timestamp: Date | string | number | { seconds: number; nanoseconds: number };
-  senderName: string;
+  timestamp: Timestamp;
+  senderName?: string;
+  read?: boolean;
+}
+
+interface TelehealthSession {
+  id: string;
+  patientUid: string;
+  doctorUid?: string;
+  doctorName: string;
+  status: 'scheduled' | 'active' | 'completed' | 'cancelled';
+  startTime: Timestamp;
+  endTime?: Timestamp;
+  meetingLink?: string;
+  roomName: string;
 }
 
 interface Invoice {
@@ -139,6 +155,15 @@ interface Invoice {
   dueDate: string;
 }
 
+interface Vital {
+  id: string;
+  patientUid: string;
+  type: 'BP' | 'Weight' | 'HeartRate' | 'Temp' | 'Oxygen';
+  value: string;
+  unit: string;
+  date: Timestamp;
+}
+
 const PatientPortal = () => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -146,25 +171,119 @@ const PatientPortal = () => {
   const [labResults, setLabResults] = useState<LabResult[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [telehealthSessions, setTelehealthSessions] = useState<TelehealthSession[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [vitals, setVitals] = useState<Vital[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [newMessage, setNewMessage] = useState("");
 
-  // Mock data for charts
-  const healthData = [
-    { name: 'Mon', bpm: 72, weight: 165, glucose: 95 },
-    { name: 'Tue', bpm: 75, weight: 164.8, glucose: 98 },
-    { name: 'Wed', bpm: 70, weight: 165.2, glucose: 92 },
-    { name: 'Thu', bpm: 68, weight: 165, glucose: 94 },
-    { name: 'Fri', bpm: 74, weight: 164.5, glucose: 96 },
-    { name: 'Sat', bpm: 71, weight: 164.2, glucose: 93 },
-    { name: 'Sun', bpm: 72, weight: 164, glucose: 95 },
-  ];
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !user) return;
+
+    try {
+      const messageData = {
+        senderId: user.uid,
+        receiverId: "doctor-1", // For demo
+        content: newMessage,
+        timestamp: serverTimestamp(),
+        read: false
+      };
+
+      await addDoc(collection(db, "messages"), messageData);
+      setNewMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message");
+    }
+  };
+
+  const handleStartTelehealth = async () => {
+    if (!user) return;
+    setIsActionLoading(true);
+    try {
+      const sessionData = {
+        patientUid: user.uid,
+        doctorUid: "doctor-1",
+        doctorName: "Dr. Sarah Wilson",
+        status: "active",
+        startTime: serverTimestamp(),
+        roomName: `room-${user.uid}-${Date.now()}`,
+        meetingLink: "https://meet.jit.si/" + `room-${user.uid}-${Date.now()}`
+      };
+
+      await addDoc(collection(db, "telehealth_sessions"), sessionData);
+      setActiveTab("telehealth");
+      toast.success("Telehealth session started!");
+    } catch (error) {
+      console.error("Error starting telehealth:", error);
+      toast.error("Failed to start telehealth session");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handlePayInvoice = async (invoiceId: string) => {
+    setIsActionLoading(true);
+    try {
+      await updateDoc(doc(db, "invoices", invoiceId), {
+        status: 'paid'
+      });
+      toast.success("Invoice paid successfully!");
+    } catch (error) {
+      console.error("Error paying invoice:", error);
+      toast.error("Payment failed");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Transform vitals for charts
+  const healthData = useMemo(() => {
+    if (vitals.length === 0) {
+      return [
+        { name: 'Mon', bpm: 72, weight: 165, glucose: 95 },
+        { name: 'Tue', bpm: 75, weight: 164.8, glucose: 98 },
+        { name: 'Wed', bpm: 70, weight: 165.2, glucose: 92 },
+        { name: 'Thu', bpm: 68, weight: 165, glucose: 94 },
+        { name: 'Fri', bpm: 74, weight: 164.5, glucose: 96 },
+        { name: 'Sat', bpm: 71, weight: 164.2, glucose: 93 },
+        { name: 'Sun', bpm: 72, weight: 164, glucose: 95 },
+      ];
+    }
+
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const grouped: Record<string, { name: string; bpm: number; weight: number; glucose: number }> = {};
+    
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dayName = days[d.getDay()];
+      grouped[dayName] = { name: dayName, bpm: 72, weight: 165, glucose: 95 };
+    }
+
+    vitals.forEach((v: Vital) => {
+      const date = v.date?.toDate ? v.date.toDate() : new Date(v.date);
+      const dayName = days[date.getDay()];
+      if (grouped[dayName]) {
+        if (v.type === 'HeartRate') grouped[dayName].bpm = Number(v.value);
+        if (v.type === 'Weight') grouped[dayName].weight = Number(v.value);
+        if (v.type === 'Oxygen') grouped[dayName].glucose = Number(v.value);
+      }
+    });
+
+    return Object.values(grouped);
+  }, [vitals]);
 
   useEffect(() => {
     let unsubAppointments: (() => void) | undefined;
+    let unsubMessages: (() => void) | undefined;
+    let unsubTelehealth: (() => void) | undefined;
+    let unsubLabResults: (() => void) | undefined;
+    let unsubPrescriptions: (() => void) | undefined;
+    let unsubInvoices: (() => void) | undefined;
+    let unsubVitals: (() => void) | undefined;
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -198,6 +317,127 @@ const PatientPortal = () => {
           console.error("Error setting up appointments listener:", error);
         }
 
+        // Real-time Messages
+        try {
+          const messagesQuery = query(
+            collection(db, "messages"),
+            where("senderId", "in", [currentUser.uid, "doctor-1"]), // For demo, we assume doctor-1 is the primary contact
+            where("receiverId", "in", [currentUser.uid, "doctor-1"]),
+            orderBy("timestamp", "asc")
+          );
+
+          unsubMessages = onSnapshot(messagesQuery, (snapshot) => {
+            const msgs = snapshot.docs.map(doc => {
+              const data = doc.data();
+              return {
+                id: doc.id,
+                ...data,
+                senderName: data.senderId === currentUser.uid ? "You" : "Dr. Sarah Wilson"
+              };
+            }) as Message[];
+            setMessages(msgs);
+          }, (error) => {
+            handleFirestoreError(error, OperationType.LIST, "messages");
+          });
+        } catch (error) {
+          console.error("Error setting up messages listener:", error);
+        }
+
+        // Real-time Telehealth Sessions
+        try {
+          const telehealthQuery = query(
+            collection(db, "telehealth_sessions"),
+            where("patientUid", "==", currentUser.uid),
+            where("status", "in", ["scheduled", "active"]),
+            orderBy("startTime", "desc")
+          );
+
+          unsubTelehealth = onSnapshot(telehealthQuery, (snapshot) => {
+            setTelehealthSessions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TelehealthSession[]);
+          }, (error) => {
+            handleFirestoreError(error, OperationType.LIST, "telehealth_sessions");
+          });
+        } catch (error) {
+          console.error("Error setting up telehealth listener:", error);
+        }
+
+        // Real-time Lab Results
+        try {
+          const labQuery = query(
+            collection(db, "lab_results"),
+            where("patientUid", "==", currentUser.uid),
+            orderBy("date", "desc")
+          );
+
+          unsubLabResults = onSnapshot(labQuery, (snapshot) => {
+            setLabResults(snapshot.docs.map(doc => {
+              const data = doc.data();
+              return {
+                id: doc.id,
+                ...data,
+                date: data.date?.toDate ? data.date.toDate() : new Date(data.date)
+              };
+            }) as LabResult[]);
+          }, (error) => {
+            handleFirestoreError(error, OperationType.LIST, "lab_results");
+          });
+        } catch (error) {
+          console.error("Error setting up lab results listener:", error);
+        }
+
+        // Real-time Prescriptions
+        try {
+          const prescriptionQuery = query(
+            collection(db, "prescriptions"),
+            where("patientUid", "==", currentUser.uid),
+            where("status", "==", "active")
+          );
+
+          unsubPrescriptions = onSnapshot(prescriptionQuery, (snapshot) => {
+            setPrescriptions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Prescription[]);
+          }, (error) => {
+            handleFirestoreError(error, OperationType.LIST, "prescriptions");
+          });
+        } catch (error) {
+          console.error("Error setting up prescriptions listener:", error);
+        }
+
+        // Real-time Invoices
+        try {
+          const invoiceQuery = query(
+            collection(db, "invoices"),
+            where("patientUid", "==", currentUser.uid),
+            orderBy("dueDate", "desc")
+          );
+
+          unsubInvoices = onSnapshot(invoiceQuery, (snapshot) => {
+            setInvoices(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Invoice[]);
+          }, (error) => {
+            handleFirestoreError(error, OperationType.LIST, "invoices");
+          });
+        } catch (error) {
+          console.error("Error setting up invoices listener:", error);
+        }
+
+        // Real-time Vitals
+        try {
+          const vitalsQuery = query(
+            collection(db, "vitals"),
+            where("patientUid", "==", currentUser.uid),
+            orderBy("date", "desc"),
+            limit(50)
+          );
+
+          unsubVitals = onSnapshot(vitalsQuery, (snapshot) => {
+            const vitalsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Vital[];
+            setVitals(vitalsData);
+          }, (error) => {
+            handleFirestoreError(error, OperationType.LIST, "vitals");
+          });
+        } catch (error) {
+          console.error("Error setting up vitals listener:", error);
+        }
+
         // Mock data for demo purposes (if collections are empty)
         setLabResults([
           { id: '1', testName: 'Blood Glucose', value: '95', unit: 'mg/dL', status: 'normal', date: new Date(), category: 'Metabolic' },
@@ -224,10 +464,18 @@ const PatientPortal = () => {
       } else {
         setUserData(null);
         setAppointments([]);
-        if (unsubAppointments) {
-          unsubAppointments();
-          unsubAppointments = undefined;
-        }
+        setMessages([]);
+        setTelehealthSessions([]);
+        setLabResults([]);
+        setPrescriptions([]);
+        setInvoices([]);
+        if (unsubAppointments) unsubAppointments();
+        if (unsubMessages) unsubMessages();
+        if (unsubTelehealth) unsubTelehealth();
+        if (unsubLabResults) unsubLabResults();
+        if (unsubPrescriptions) unsubPrescriptions();
+        if (unsubInvoices) unsubInvoices();
+        if (unsubVitals) unsubVitals();
       }
       setIsLoading(false);
     });
@@ -235,8 +483,19 @@ const PatientPortal = () => {
     return () => {
       unsubscribe();
       if (unsubAppointments) unsubAppointments();
+      if (unsubMessages) unsubMessages();
+      if (unsubTelehealth) unsubTelehealth();
+      if (unsubLabResults) unsubLabResults();
+      if (unsubPrescriptions) unsubPrescriptions();
+      if (unsubInvoices) unsubInvoices();
+      if (unsubVitals) unsubVitals();
     };
   }, []);
+
+  const getLatestVital = (type: string) => {
+    const latest = vitals.find(v => v.type === type);
+    return latest ? latest.value : null;
+  };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -483,15 +742,15 @@ const PatientPortal = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       <StatCard 
                         title="Heart Rate" 
-                        value="72" 
+                        value={getLatestVital("HeartRate") || "72"} 
                         unit="bpm" 
                         icon={<Heart className="text-red-500" />} 
-                        trend="+2% from yesterday"
+                        trend="Real-time"
                         color="bg-red-50"
                       />
                       <StatCard 
                         title="Body Temp" 
-                        value="98.6" 
+                        value={getLatestVital("Temp") || "98.6"} 
                         unit="°F" 
                         icon={<Thermometer className="text-orange-500" />} 
                         trend="Normal"
@@ -499,15 +758,15 @@ const PatientPortal = () => {
                       />
                       <StatCard 
                         title="Weight" 
-                        value="165" 
+                        value={getLatestVital("Weight") || "165"} 
                         unit="lbs" 
                         icon={<Weight className="text-blue-500" />} 
-                        trend="-1.2 lbs this month"
+                        trend="Last recorded"
                         color="bg-blue-50"
                       />
                       <StatCard 
                         title="Blood Glucose" 
-                        value="95" 
+                        value={getLatestVital("Oxygen") || "95"} 
                         unit="mg/dL" 
                         icon={<Activity className="text-emerald-500" />} 
                         trend="Stable"
@@ -532,7 +791,7 @@ const PatientPortal = () => {
                                 <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                                 <p className="text-slate-500">No upcoming appointments.</p>
                                 <Link to="/book-appointment">
-                                  <Button variant="link" className="text-primary mt-2">Schedule one now</Button>
+                                  <Button variant="link" className="text-primary mt-2" onClick={handleStartTelehealth}>Schedule one now</Button>
                                 </Link>
                               </div>
                             ) : (
@@ -592,6 +851,36 @@ const PatientPortal = () => {
                               <TrendingUp className="w-3 h-3 mr-1" />
                               Up 4 points from last month
                             </p>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-none shadow-sm">
+                          <CardHeader>
+                            <CardTitle className="text-lg">Recent Activity</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            {labResults.slice(0, 2).map(lr => (
+                              <div key={lr.id} className="flex items-start space-x-3">
+                                <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                                  <FileText className="w-4 h-4" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-slate-900">New Lab Result: {lr.testName}</p>
+                                  <p className="text-xs text-slate-500">{new Date(lr.date).toLocaleDateString()}</p>
+                                </div>
+                              </div>
+                            ))}
+                            {messages.slice(0, 1).map(msg => (
+                              <div key={msg.id} className="flex items-start space-x-3">
+                                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                                  <MessageSquare className="w-4 h-4" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-slate-900">New Message from Care Team</p>
+                                  <p className="text-xs text-slate-500">Just now</p>
+                                </div>
+                              </div>
+                            ))}
                           </CardContent>
                         </Card>
 
@@ -840,7 +1129,16 @@ const PatientPortal = () => {
                       <Card className="bg-slate-900 text-white border-none p-6">
                         <p className="text-slate-400 text-sm">Total Outstanding</p>
                         <h2 className="text-3xl font-bold mt-2">$245.00</h2>
-                        <Button className="w-full mt-6 bg-primary hover:bg-primary/90">Pay Now</Button>
+                        <Button 
+                          className="w-full mt-6 bg-primary hover:bg-primary/90"
+                          onClick={() => {
+                            const unpaid = invoices.find(inv => inv.status !== 'paid');
+                            if (unpaid) handlePayInvoice(unpaid.id);
+                          }}
+                          disabled={isActionLoading}
+                        >
+                          {isActionLoading ? "Processing..." : "Pay Now"}
+                        </Button>
                       </Card>
                       <Card className="border-none shadow-sm p-6 flex flex-col justify-center">
                         <p className="text-slate-500 text-sm">Last Payment</p>
@@ -960,7 +1258,7 @@ const PatientPortal = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Button variant="ghost" size="icon" className="text-slate-400"><Phone className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon" className="text-slate-400" onClick={() => setActiveTab("telehealth")}><Video className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" className="text-slate-400" onClick={handleStartTelehealth}><Video className="w-4 h-4" /></Button>
                           <Button variant="ghost" size="icon" className="text-slate-400"><MoreVertical className="w-4 h-4" /></Button>
                         </div>
                       </div>
@@ -968,15 +1266,17 @@ const PatientPortal = () => {
                       <ScrollArea className="flex-grow p-6">
                         <div className="space-y-6">
                           {messages.map((msg) => (
-                            <div key={msg.id} className={`flex ${msg.senderName === 'You' ? 'justify-end' : 'justify-start'}`}>
+                            <div key={msg.id} className={`flex ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
                               <div className={`max-w-[70%] rounded-2xl p-4 ${
-                                msg.senderName === 'You' 
+                                msg.senderId === user?.uid 
                                   ? 'bg-primary text-white rounded-tr-none' 
                                   : 'bg-slate-100 text-slate-900 rounded-tl-none'
                               }`}>
                                 <p className="text-sm">{msg.content}</p>
-                                <p className={`text-[10px] mt-2 ${msg.senderName === 'You' ? 'text-primary-foreground/60' : 'text-slate-400'}`}>
-                                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                <p className={`text-[10px] mt-2 ${msg.senderId === user?.uid ? 'text-primary-foreground/60' : 'text-slate-400'}`}>
+                                  {msg.timestamp?.seconds 
+                                    ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                    : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                               </div>
                             </div>
@@ -992,11 +1292,11 @@ const PatientPortal = () => {
                             className="flex-grow bg-white border-slate-200"
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && newMessage.trim() && (setMessages([...messages, { id: Date.now().toString(), senderId: user.uid, senderName: 'You', content: newMessage, timestamp: new Date() }]), setNewMessage(""))}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                           />
                           <Button 
                             className="bg-primary hover:bg-primary/90 text-white"
-                            onClick={() => newMessage.trim() && (setMessages([...messages, { id: Date.now().toString(), senderId: user.uid, senderName: 'You', content: newMessage, timestamp: new Date() }]), setNewMessage(""))}
+                            onClick={handleSendMessage}
                           >
                             <Send className="w-4 h-4" />
                           </Button>
@@ -1021,84 +1321,100 @@ const PatientPortal = () => {
                       </Badge>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                      <Card className="lg:col-span-3 border-none shadow-2xl bg-slate-900 aspect-video rounded-3xl overflow-hidden relative group">
-                        {/* Main Video Feed (Mock) */}
-                        <img 
-                          src="https://images.unsplash.com/photo-1559839734-2b71f153678f?auto=format&fit=crop&q=80&w=1000" 
-                          alt="Doctor Video" 
-                          className="w-full h-full object-cover opacity-80"
-                          referrerPolicy="no-referrer"
-                        />
-                        
-                        {/* Patient Self-View */}
-                        <div className="absolute top-6 right-6 w-48 aspect-video bg-slate-800 rounded-2xl border-2 border-white/20 shadow-2xl overflow-hidden">
-                          <img 
-                            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400" 
-                            alt="Self View" 
-                            className="w-full h-full object-cover"
-                            referrerPolicy="no-referrer"
-                          />
-                        </div>
-
-                        {/* Call Controls */}
-                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center space-x-4 bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/20">
-                          <Button variant="ghost" size="icon" className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white">
-                            <Mic className="w-6 h-6" />
+                    {telehealthSessions.length === 0 ? (
+                      <Card className="p-12 text-center border-none shadow-sm bg-white">
+                        <div className="max-w-md mx-auto space-y-6">
+                          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                            <Video className="w-10 h-10 text-primary" />
+                          </div>
+                          <div className="space-y-2">
+                            <h2 className="text-xl font-bold text-slate-900">No Active Session</h2>
+                            <p className="text-slate-500">You don't have an active virtual consultation at the moment. You can start one now with an available doctor.</p>
+                          </div>
+                          <Button 
+                            className="bg-primary hover:bg-primary/90 text-white px-8 h-12 rounded-xl font-bold shadow-lg shadow-primary/20"
+                            onClick={handleStartTelehealth}
+                            disabled={isActionLoading}
+                          >
+                            {isActionLoading ? "Starting..." : "Start Instant Consultation"}
                           </Button>
-                          <Button variant="ghost" size="icon" className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white">
-                            <Video className="w-6 h-6" />
-                          </Button>
-                          <Button variant="destructive" size="icon" className="w-14 h-14 rounded-full shadow-xl shadow-red-500/20" onClick={() => setActiveTab("dashboard")}>
-                            <Phone className="w-6 h-6 rotate-[135deg]" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white">
-                            <Settings className="w-6 h-6" />
-                          </Button>
-                        </div>
-
-                        {/* Doctor Info Overlay */}
-                        <div className="absolute top-6 left-6 flex items-center space-x-3 bg-black/40 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/10">
-                          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                          <p className="text-white font-medium text-sm">Dr. Sarah Wilson (Cardiologist)</p>
                         </div>
                       </Card>
+                    ) : (
+                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                        <Card className="lg:col-span-3 border-none shadow-2xl bg-slate-900 aspect-video rounded-3xl overflow-hidden relative group">
+                          {/* Jitsi Meet Iframe for Real Video Call */}
+                          <iframe
+                            src={`${telehealthSessions[0].meetingLink}#config.prejoinPageEnabled=false&interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","chat","recording","livestreaming","etherpad","sharedvideo","settings","raisehand","videoquality","filmstrip","invite","feedback","stats","shortcuts","tileview","videobackgroundblur","download","help","mute-everyone","e2ee"]`}
+                            allow="camera; microphone; display-capture; autoplay; clipboard-write"
+                            className="w-full h-full border-none"
+                            title="Telehealth Session"
+                          />
+                          
+                          {/* Doctor Info Overlay */}
+                          <div className="absolute top-6 left-6 flex items-center space-x-3 bg-black/40 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/10 pointer-events-none">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                            <p className="text-white font-medium text-sm">{telehealthSessions[0].doctorName}</p>
+                          </div>
+                        </Card>
 
-                      <div className="space-y-6">
-                        <Card className="border-none shadow-sm">
-                          <CardHeader>
-                            <CardTitle className="text-lg">Session Details</CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-slate-500">Duration</span>
-                              <span className="font-bold text-slate-900">12:45</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-slate-500">Connection</span>
-                              <span className="text-emerald-500 font-medium">Excellent</span>
-                            </div>
-                            <Separator />
-                            <div className="space-y-2">
-                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Shared Documents</p>
-                              <div className="flex items-center p-2 bg-slate-50 rounded-lg text-xs cursor-pointer hover:bg-slate-100 transition-colors">
-                                <FileText className="w-3 h-3 mr-2 text-primary" />
-                                <span className="truncate">Blood_Report_Mar22.pdf</span>
+                        <div className="space-y-6">
+                          <Card className="border-none shadow-sm">
+                            <CardHeader>
+                              <CardTitle className="text-lg">Session Details</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-slate-500">Status</span>
+                                <Badge variant="outline" className="capitalize text-emerald-600 bg-emerald-50 border-emerald-100">
+                                  {telehealthSessions[0].status}
+                                </Badge>
                               </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-slate-500">Room</span>
+                                <span className="font-mono text-xs text-slate-900">{telehealthSessions[0].roomName}</span>
+                              </div>
+                              <Separator />
+                              <div className="space-y-2">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Shared Documents</p>
+                                <div className="flex items-center p-2 bg-slate-50 rounded-lg text-xs cursor-pointer hover:bg-slate-100 transition-colors">
+                                  <FileText className="w-3 h-3 mr-2 text-primary" />
+                                  <span className="truncate">Blood_Report_Mar22.pdf</span>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
 
-                        <Card className="border-none shadow-sm bg-primary/5 border border-primary/10">
-                          <CardContent className="p-4">
-                            <h4 className="font-bold text-primary text-sm mb-2">Doctor's Note</h4>
-                            <p className="text-xs text-slate-600 leading-relaxed italic">
-                              "Patient reports feeling much better after the new medication. Vitals are stable. Continue current plan."
-                            </p>
-                          </CardContent>
-                        </Card>
+                          <Card className="border-none shadow-sm bg-primary/5 border border-primary/10">
+                            <CardContent className="p-4">
+                              <h4 className="font-bold text-primary text-sm mb-2">Doctor's Note</h4>
+                              <p className="text-xs text-slate-600 leading-relaxed italic">
+                                "Session in progress. Real-time notes will appear here once the doctor submits them."
+                              </p>
+                            </CardContent>
+                          </Card>
+
+                          <Button 
+                            variant="destructive" 
+                            className="w-full h-12 rounded-xl font-bold shadow-lg shadow-red-500/10"
+                            onClick={async () => {
+                              try {
+                                await updateDoc(doc(db, "telehealth_sessions", telehealthSessions[0].id), {
+                                  status: 'completed',
+                                  endTime: serverTimestamp()
+                                });
+                                setActiveTab("dashboard");
+                                toast.success("Session ended successfully");
+                              } catch (error) {
+                                console.error("Error ending session:", error);
+                              }
+                            }}
+                          >
+                            End Consultation
+                          </Button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </motion.div>
                 )}
 
