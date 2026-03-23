@@ -1126,69 +1126,135 @@ const PatientPortal = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Card className="bg-slate-900 text-white border-none p-6">
-                        <p className="text-slate-400 text-sm">Total Outstanding</p>
-                        <h2 className="text-3xl font-bold mt-2">$245.00</h2>
+                      <Card className="bg-slate-900 text-white border-none p-6 relative overflow-hidden group">
+                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all"></div>
+                        <p className="text-slate-400 text-sm font-medium">Total Outstanding</p>
+                        <h2 className="text-4xl font-bold mt-2 tracking-tight">$245.00</h2>
                         <Button 
-                          className="w-full mt-6 bg-primary hover:bg-primary/90"
+                          className="w-full mt-6 bg-primary hover:bg-primary/90 text-white font-bold h-11 rounded-xl shadow-lg shadow-primary/20"
                           onClick={() => {
                             const unpaid = invoices.find(inv => inv.status !== 'paid');
                             if (unpaid) handlePayInvoice(unpaid.id);
                           }}
                           disabled={isActionLoading}
                         >
-                          {isActionLoading ? "Processing..." : "Pay Now"}
+                          {isActionLoading ? (
+                            <div className="flex items-center space-x-2">
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                              <span>Processing...</span>
+                            </div>
+                          ) : "Secure Payment"}
                         </Button>
                       </Card>
-                      <Card className="border-none shadow-sm p-6 flex flex-col justify-center">
-                        <p className="text-slate-500 text-sm">Last Payment</p>
-                        <h2 className="text-2xl font-bold mt-1">$150.00</h2>
-                        <p className="text-xs text-emerald-500 mt-2 flex items-center">
+                      <Card className="border-none shadow-sm p-6 flex flex-col justify-center bg-white">
+                        <p className="text-slate-500 text-sm font-medium">Last Payment</p>
+                        <h2 className="text-3xl font-bold mt-1 text-slate-900">$150.00</h2>
+                        <div className="mt-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
                           <CheckCircle2 className="w-3 h-3 mr-1" />
-                          Successful on Mar 15
-                        </p>
+                          Settled on Mar 15
+                        </div>
                       </Card>
-                      <Card className="border-none shadow-sm p-6 flex flex-col justify-center">
-                        <p className="text-slate-500 text-sm">Insurance Status</p>
-                        <h2 className="text-xl font-bold mt-1">Active</h2>
-                        <p className="text-xs text-slate-400 mt-2">Blue Cross Blue Shield</p>
+                      <Card className="border-none shadow-sm p-6 flex flex-col justify-center bg-white">
+                        <p className="text-slate-500 text-sm font-medium">Insurance Status</p>
+                        <div className="flex items-center mt-1">
+                          <h2 className="text-2xl font-bold text-slate-900">Active</h2>
+                          <Badge className="ml-2 bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-50">BCBS</Badge>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-2 font-medium">Policy: #BS-99283-X</p>
                       </Card>
                     </div>
 
-                    <Card className="border-none shadow-sm">
-                      <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Invoice History</CardTitle>
-                        <Button variant="ghost" size="sm"><Filter className="w-4 h-4 mr-2" /> Filter</Button>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-0">
-                          {invoices.map((inv) => (
-                            <div key={inv.id} className="flex items-center justify-between py-4 border-b border-slate-100 last:border-0 hover:bg-slate-50/50 px-2 rounded-lg transition-colors">
-                              <div className="flex items-center space-x-4">
-                                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-                                  <BillingIcon className="w-5 h-5 text-slate-500" />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      <div className="lg:col-span-2 space-y-6">
+                        <Card className="border-none shadow-sm overflow-hidden bg-white">
+                          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50">
+                            <div>
+                              <CardTitle className="text-lg">Invoice History</CardTitle>
+                              <p className="text-xs text-slate-500 mt-1">View and download your medical service invoices.</p>
+                            </div>
+                            <Button variant="outline" size="sm" className="rounded-xl h-9">
+                              <Filter className="w-3.5 h-3.5 mr-2" /> 
+                              Filter
+                            </Button>
+                          </CardHeader>
+                          <CardContent className="p-0">
+                            <div className="divide-y divide-slate-50">
+                              {invoices.map((inv) => (
+                                <div key={inv.id} className="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors group">
+                                  <div className="flex items-center space-x-4">
+                                    <div className="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
+                                      <BillingIcon className="w-5 h-5 text-slate-500" />
+                                    </div>
+                                    <div>
+                                      <p className="font-bold text-slate-900 text-sm">{inv.description}</p>
+                                      <p className="text-[10px] text-slate-500 mt-0.5 font-medium uppercase tracking-wider">
+                                        Invoice #{inv.id} • Due {inv.dueDate}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center space-x-6">
+                                    <p className="font-bold text-slate-900 text-sm">${inv.amount.toFixed(2)}</p>
+                                    <Badge className={`h-6 text-[10px] font-bold px-2.5 rounded-full ${
+                                      inv.status === 'paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                      inv.status === 'unpaid' ? 'bg-red-50 text-red-600 border-red-100' :
+                                      'bg-orange-50 text-orange-600 border-orange-100'
+                                    }`} variant="outline">
+                                      {inv.status.toUpperCase()}
+                                    </Badge>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-300 hover:text-slate-600">
+                                      <Download className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      <div className="space-y-6">
+                        <Card className="border-none shadow-sm bg-white overflow-hidden">
+                          <CardHeader className="border-b border-slate-50 pb-4">
+                            <CardTitle className="text-sm font-bold text-slate-800">Payment Methods</CardTitle>
+                          </CardHeader>
+                          <CardContent className="p-4 space-y-4">
+                            <div className="p-4 rounded-2xl border-2 border-primary/20 bg-primary/5 relative group cursor-pointer">
+                              <div className="absolute top-3 right-3">
+                                <CheckCircle2 className="w-4 h-4 text-primary" />
+                              </div>
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-7 bg-slate-900 rounded-md flex items-center justify-center">
+                                  <span className="text-[8px] font-bold text-white italic">VISA</span>
                                 </div>
                                 <div>
-                                  <p className="font-bold text-slate-900">{inv.description}</p>
-                                  <p className="text-xs text-slate-500">Invoice #{inv.id} • Due {inv.dueDate}</p>
+                                  <p className="text-xs font-bold text-slate-900">•••• 4242</p>
+                                  <p className="text-[10px] text-slate-500">Expires 12/26</p>
                                 </div>
                               </div>
-                              <div className="flex items-center space-x-6">
-                                <p className="font-bold text-slate-900">${inv.amount.toFixed(2)}</p>
-                                <Badge className={
-                                  inv.status === 'paid' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' :
-                                  inv.status === 'unpaid' ? 'bg-red-100 text-red-700 hover:bg-red-100' :
-                                  'bg-orange-100 text-orange-700 hover:bg-orange-100'
-                                }>
-                                  {inv.status.toUpperCase()}
-                                </Badge>
-                                <Button variant="ghost" size="icon"><MoreVertical className="w-4 h-4 text-slate-400" /></Button>
-                              </div>
                             </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
+                            
+                            <Button variant="outline" className="w-full border-dashed border-2 py-6 rounded-2xl text-slate-500 hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all">
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add New Method
+                            </Button>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-none shadow-sm bg-slate-50/50 border border-slate-100">
+                          <CardContent className="p-4">
+                            <div className="flex items-center space-x-3 mb-3">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                              </div>
+                              <h4 className="text-xs font-bold text-slate-800">Secure Billing</h4>
+                            </div>
+                            <p className="text-[10px] text-slate-500 leading-relaxed">
+                              Your payments are processed securely using bank-grade encryption. BienSanté does not store your full card details.
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
                   </motion.div>
                 )}
 
@@ -1241,62 +1307,92 @@ const PatientPortal = () => {
                     </Card>
 
                     {/* Chat Area */}
-                    <Card className="flex-grow border-none shadow-sm flex flex-col overflow-hidden">
-                      <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                    <Card className="flex-grow border-none shadow-sm flex flex-col overflow-hidden bg-white">
+                      <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
                         <div className="flex items-center space-x-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src="https://i.pravatar.cc/150?u=dr-wilson" />
-                            <AvatarFallback>SW</AvatarFallback>
-                          </Avatar>
+                          <div className="relative">
+                            <Avatar className="h-10 w-10 border-2 border-primary/10">
+                              <AvatarImage src="https://i.pravatar.cc/150?u=dr-wilson" />
+                              <AvatarFallback>SW</AvatarFallback>
+                            </Avatar>
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
+                          </div>
                           <div>
-                            <p className="font-bold text-slate-900">Dr. Sarah Wilson</p>
-                            <p className="text-xs text-emerald-500 flex items-center">
-                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></span>
+                            <p className="font-bold text-slate-900 leading-none">Dr. Sarah Wilson</p>
+                            <p className="text-[10px] text-emerald-500 font-bold mt-1.5 flex items-center">
+                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>
                               Online
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="icon" className="text-slate-400"><Phone className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon" className="text-slate-400" onClick={handleStartTelehealth}><Video className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon" className="text-slate-400"><MoreVertical className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary hover:bg-primary/5">
+                            <Phone className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary hover:bg-primary/5" onClick={handleStartTelehealth}>
+                            <Video className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary hover:bg-primary/5">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
 
-                      <ScrollArea className="flex-grow p-6">
+                      <ScrollArea className="flex-grow p-6 bg-slate-50/30">
                         <div className="space-y-6">
+                          <div className="flex justify-center">
+                            <span className="px-3 py-1 bg-slate-100 text-slate-400 text-[10px] font-bold rounded-full uppercase tracking-widest">Today</span>
+                          </div>
+                          
                           {messages.map((msg) => (
                             <div key={msg.id} className={`flex ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
-                              <div className={`max-w-[70%] rounded-2xl p-4 ${
-                                msg.senderId === user?.uid 
-                                  ? 'bg-primary text-white rounded-tr-none' 
-                                  : 'bg-slate-100 text-slate-900 rounded-tl-none'
-                              }`}>
-                                <p className="text-sm">{msg.content}</p>
-                                <p className={`text-[10px] mt-2 ${msg.senderId === user?.uid ? 'text-primary-foreground/60' : 'text-slate-400'}`}>
-                                  {msg.timestamp?.seconds 
-                                    ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                    : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </p>
+                              <div className="flex items-start space-x-3 max-w-[75%]">
+                                {msg.senderId !== user?.uid && (
+                                  <Avatar className="h-8 w-8 mt-1 border border-slate-100">
+                                    <AvatarImage src="https://i.pravatar.cc/150?u=dr-wilson" />
+                                    <AvatarFallback>SW</AvatarFallback>
+                                  </Avatar>
+                                )}
+                                <div className="space-y-1">
+                                  <div className={`p-4 rounded-2xl shadow-sm border ${
+                                    msg.senderId === user?.uid 
+                                      ? 'bg-primary text-white rounded-tr-none border-primary/10 shadow-primary/10' 
+                                      : 'bg-white text-slate-900 rounded-tl-none border-slate-100'
+                                  }`}>
+                                    <p className="text-sm leading-relaxed">{msg.content}</p>
+                                  </div>
+                                  <div className={`flex items-center space-x-1 mt-1 ${msg.senderId === user?.uid ? 'justify-end mr-1' : 'ml-1'}`}>
+                                    <p className="text-[10px] text-slate-400">
+                                      {msg.timestamp?.seconds 
+                                        ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                    {msg.senderId === user?.uid && <CheckCheck className="w-3 h-3 text-primary" />}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           ))}
                         </div>
                       </ScrollArea>
 
-                      <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-                        <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="icon" className="text-slate-400"><Plus className="w-5 h-5" /></Button>
+                      <div className="p-4 border-t border-slate-100 bg-white">
+                        <div className="flex items-center space-x-3 bg-slate-50 p-2 rounded-2xl border border-slate-100 focus-within:border-primary/30 focus-within:bg-white transition-all">
+                          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary">
+                            <Paperclip className="w-4 h-4" />
+                          </Button>
                           <Input 
-                            placeholder="Type your message..." 
-                            className="flex-grow bg-white border-slate-200"
+                            placeholder="Type a message..." 
+                            className="border-none bg-transparent focus-visible:ring-0 text-sm h-10"
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                           />
                           <Button 
-                            className="bg-primary hover:bg-primary/90 text-white"
+                            size="icon" 
+                            className="rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
                             onClick={handleSendMessage}
+                            disabled={!newMessage.trim() || isActionLoading}
                           >
                             <Send className="w-4 h-4" />
                           </Button>
@@ -1345,41 +1441,63 @@ const PatientPortal = () => {
                         <Card className="lg:col-span-3 border-none shadow-2xl bg-slate-900 aspect-video rounded-3xl overflow-hidden relative group">
                           {/* Jitsi Meet Iframe for Real Video Call */}
                           <iframe
-                            src={`${telehealthSessions[0].meetingLink}#config.prejoinPageEnabled=false&interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","chat","recording","livestreaming","etherpad","sharedvideo","settings","raisehand","videoquality","filmstrip","invite","feedback","stats","shortcuts","tileview","videobackgroundblur","download","help","mute-everyone","e2ee"]`}
+                            src={`${telehealthSessions[0].meetingLink}#config.prejoinPageEnabled=false&config.subject="BienSanté Consultation"&userInfo.displayName="${userData?.firstName} ${userData?.lastName}"&interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","chat","recording","livestreaming","etherpad","sharedvideo","settings","raisehand","videoquality","filmstrip","invite","feedback","stats","shortcuts","tileview","videobackgroundblur","download","help","mute-everyone","e2ee"]`}
                             allow="camera; microphone; display-capture; autoplay; clipboard-write"
                             className="w-full h-full border-none"
                             title="Telehealth Session"
                           />
-                          
-                          {/* Doctor Info Overlay */}
-                          <div className="absolute top-6 left-6 flex items-center space-x-3 bg-black/40 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/10 pointer-events-none">
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                            <p className="text-white font-medium text-sm">{telehealthSessions[0].doctorName}</p>
-                          </div>
                         </Card>
 
                         <div className="space-y-6">
-                          <Card className="border-none shadow-sm">
-                            <CardHeader>
-                              <CardTitle className="text-lg">Session Details</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">Status</span>
-                                <Badge variant="outline" className="capitalize text-emerald-600 bg-emerald-50 border-emerald-100">
-                                  {telehealthSessions[0].status}
-                                </Badge>
+                          <Card className="border-none shadow-sm overflow-hidden">
+                            <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                              <CardTitle className="text-sm font-bold text-slate-700">Session Info</CardTitle>
+                              <div className="flex items-center space-x-1">
+                                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                <span className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">Recording</span>
                               </div>
-                              <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">Room</span>
-                                <span className="font-mono text-xs text-slate-900">{telehealthSessions[0].roomName}</span>
+                            </div>
+                            <CardContent className="p-4 space-y-4">
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-slate-500">Moderator</span>
+                                  <div className="flex items-center">
+                                    <ShieldCheck className="w-3 h-3 text-primary mr-1" />
+                                    <span className="text-xs font-bold text-slate-900">{telehealthSessions[0].doctorName}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-slate-500">Status</span>
+                                  <Badge variant="outline" className="h-5 text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 border-emerald-100">
+                                    {telehealthSessions[0].status}
+                                  </Badge>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-slate-500">Encryption</span>
+                                  <span className="text-[10px] font-bold text-emerald-500 flex items-center">
+                                    <Lock className="w-2.5 h-2.5 mr-1" />
+                                    End-to-End
+                                  </span>
+                                </div>
                               </div>
+                              
                               <Separator />
-                              <div className="space-y-2">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Shared Documents</p>
-                                <div className="flex items-center p-2 bg-slate-50 rounded-lg text-xs cursor-pointer hover:bg-slate-100 transition-colors">
-                                  <FileText className="w-3 h-3 mr-2 text-primary" />
-                                  <span className="truncate">Blood_Report_Mar22.pdf</span>
+                              
+                              <div className="space-y-3">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Relevant Records</p>
+                                <div className="space-y-2">
+                                  {labResults.slice(0, 2).map((lr) => (
+                                    <div key={lr.id} className="flex items-center p-2 bg-slate-50 rounded-xl border border-slate-100 hover:border-primary/20 transition-all cursor-pointer group">
+                                      <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center mr-3 shadow-sm group-hover:bg-primary/5">
+                                        <FileText className="w-3.5 h-3.5 text-primary" />
+                                      </div>
+                                      <div className="flex-grow min-w-0">
+                                        <p className="text-[10px] font-bold text-slate-900 truncate">{lr.testName}</p>
+                                        <p className="text-[9px] text-slate-400">{new Date(lr.date).toLocaleDateString()}</p>
+                                      </div>
+                                      <Download className="w-3 h-3 text-slate-300 group-hover:text-primary" />
+                                    </div>
+                                  ))}
                                 </div>
                               </div>
                             </CardContent>
@@ -1387,31 +1505,39 @@ const PatientPortal = () => {
 
                           <Card className="border-none shadow-sm bg-primary/5 border border-primary/10">
                             <CardContent className="p-4">
-                              <h4 className="font-bold text-primary text-sm mb-2">Doctor's Note</h4>
-                              <p className="text-xs text-slate-600 leading-relaxed italic">
-                                "Session in progress. Real-time notes will appear here once the doctor submits them."
+                              <div className="flex items-center space-x-2 mb-2">
+                                <div className="w-1.5 h-4 bg-primary rounded-full"></div>
+                                <h4 className="font-bold text-primary text-xs uppercase tracking-tight">Clinical Notes</h4>
+                              </div>
+                              <p className="text-[11px] text-slate-600 leading-relaxed italic">
+                                {telehealthSessions[0].doctorNote || "Consultation in progress. Real-time clinical notes will be synchronized here as the MD updates your chart."}
                               </p>
                             </CardContent>
                           </Card>
 
-                          <Button 
-                            variant="destructive" 
-                            className="w-full h-12 rounded-xl font-bold shadow-lg shadow-red-500/10"
-                            onClick={async () => {
-                              try {
-                                await updateDoc(doc(db, "telehealth_sessions", telehealthSessions[0].id), {
-                                  status: 'completed',
-                                  endTime: serverTimestamp()
-                                });
-                                setActiveTab("dashboard");
-                                toast.success("Session ended successfully");
-                              } catch (error) {
-                                console.error("Error ending session:", error);
-                              }
-                            }}
-                          >
-                            End Consultation
-                          </Button>
+                          <div className="space-y-3">
+                            <Button 
+                              variant="destructive" 
+                              className="w-full h-11 rounded-xl font-bold text-sm shadow-lg shadow-red-500/10 hover:bg-red-600 transition-all"
+                              onClick={async () => {
+                                try {
+                                  await updateDoc(doc(db, "telehealth_sessions", telehealthSessions[0].id), {
+                                    status: 'completed',
+                                    endTime: serverTimestamp()
+                                  });
+                                  setActiveTab("dashboard");
+                                  toast.success("Consultation ended and saved to records");
+                                } catch (error) {
+                                  console.error("Error ending session:", error);
+                                }
+                              }}
+                            >
+                              End Consultation
+                            </Button>
+                            <p className="text-[9px] text-center text-slate-400">
+                              By ending, a summary will be generated and sent to your medical records.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     )}
