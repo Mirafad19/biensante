@@ -242,5 +242,9 @@ service cloud.firestore {
       allow read: if isAdmin() || isDoctor() || (isAuthenticated() && resource.data.patientUid == request.auth.uid);
       allow write: if isAdmin() || isDoctor();
     }
+
+    match /test/connection {
+      allow read: if true;
+    }
   }
 }

@@ -125,6 +125,14 @@
         "roomName": { "type": "string" }
       },
       "required": ["patientUid", "doctorName", "status", "startTime", "roomName"]
+    },
+    "Test": {
+      "title": "Test",
+      "description": "A simple entity for connection testing",
+      "type": "object",
+      "properties": {
+        "connection": { "type": "string" }
+      }
     }
   },
   "firestore": {
@@ -159,6 +167,10 @@
     "/telehealth_sessions/{sessionId}": {
       "schema": "TelehealthSession",
       "description": "Virtual consultation sessions"
+    },
+    "/test/{testId}": {
+      "schema": "Test",
+      "description": "Connection test path"
     }
   }
 }

@@ -168,7 +168,7 @@ const AdminPortal = () => {
           fetchStats();
         }
       } else {
-        navigate("/patient-portal");
+        navigate("/admin-login");
       }
       setIsLoading(false);
     });

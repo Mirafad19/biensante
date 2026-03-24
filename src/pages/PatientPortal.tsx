@@ -180,10 +180,6 @@ const PatientPortal = () => {
   const [vitals, setVitals] = useState<Vital[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
-  const [loginRole, setLoginRole] = useState<"patient" | "admin">(() => {
-    const params = new URLSearchParams(window.location.search);
-    return (params.get("role") as "patient" | "admin") || "patient";
-  });
   const [activeTab, setActiveTab] = useState("dashboard");
   const [newMessage, setNewMessage] = useState("");
 
@@ -519,27 +515,15 @@ const PatientPortal = () => {
       const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
       
       if (userDoc.exists()) {
-        const data = userDoc.data();
-        
-        // If logging in as patient, but user is admin, block it
-        if (loginRole === "patient" && data.role === "admin") {
-          toast.error("Admin accounts must use the Staff login portal.");
-          await signOut(auth);
-          return;
-        }
-
-        if (loginRole === "admin" && data.role !== "admin") {
-          toast.error("This account does not have admin privileges.");
-          await signOut(auth);
-          return;
-        }
+        const data = userDoc.data() as UserData;
         
         if (data.role === "admin") {
-          toast.success("Welcome to Admin Portal");
+          toast.info("Redirecting to Staff Portal...");
           navigate("/admin-portal");
-        } else {
-          toast.success("Welcome back to Biensante Portal");
+          return;
         }
+        
+        toast.success("Welcome back to Biensante Portal");
       }
     } catch (error) {
       const err = error as Error;
@@ -567,7 +551,7 @@ const PatientPortal = () => {
         email: email,
         firstName,
         lastName,
-        role: loginRole, // Use the selected role
+        role: "patient",
         patientId: `BS-${Math.floor(100000 + Math.random() * 900000)}`,
         createdAt: serverTimestamp(),
       };
@@ -600,7 +584,7 @@ const PatientPortal = () => {
           email: user.email,
           firstName: firstName || "User",
           lastName: lastName || "",
-          role: loginRole, // Use the selected role
+          role: "patient",
           patientId: `BS-${Math.floor(100000 + Math.random() * 900000)}`,
           createdAt: serverTimestamp(),
         };
@@ -634,18 +618,24 @@ const PatientPortal = () => {
     }
   };
 
-  const handleRoleSwitch = (role: "patient" | "admin") => {
-    if (role === loginRole) return;
-    // Force a browser refresh as requested to clear all inputs and state
-    window.location.href = window.location.pathname + "?role=" + role;
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           <p className="text-slate-500 font-medium animate-pulse">Loading Biensante Portal...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user && userData?.role === "admin") {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <h2 className="text-xl font-bold text-slate-900">Redirecting to Staff Portal...</h2>
+          <p className="text-slate-500">Please wait while we prepare your administrative dashboard.</p>
         </div>
       </div>
     );
@@ -1779,30 +1769,11 @@ const PatientPortal = () => {
           </div>
 
           <div className="text-center lg:text-left space-y-2">
-            <div className="flex justify-center lg:justify-start mb-6">
-              <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center w-full max-w-[280px] shadow-inner">
-                <button 
-                  onClick={() => handleRoleSwitch("patient")}
-                  className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all duration-300 ${loginRole === "patient" ? "bg-white text-primary shadow-md scale-[1.02]" : "text-slate-500 hover:text-slate-700"}`}
-                >
-                  Patient
-                </button>
-                <button 
-                  onClick={() => handleRoleSwitch("admin")}
-                  className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all duration-300 ${loginRole === "admin" ? "bg-white text-primary shadow-md scale-[1.02]" : "text-slate-500 hover:text-slate-700"}`}
-                >
-                  Admin
-                </button>
-              </div>
-            </div>
-            
             <h2 className="text-4xl font-black text-slate-900 tracking-tight">
-              {loginRole === "patient" ? "Patient Sign In" : "Staff Sign In"}
+              Patient Portal
             </h2>
             <p className="text-slate-500 font-medium">
-              {loginRole === "patient" 
-                ? "Use your Patient ID and password to access your portal." 
-                : "Staff account? Use the Admin login tab above."}
+              Use your Patient ID and password to access your portal.
             </p>
           </div>
 
@@ -1917,7 +1888,13 @@ const PatientPortal = () => {
             </CardContent>
           </Card>
 
-          <div className="text-center space-y-4 pt-4">
+          <div className="text-center space-y-4 pt-8 border-t border-slate-100">
+            <p className="text-sm text-slate-500 font-medium">
+              Are you a staff member?{" "}
+              <Link to="/admin-login" className="text-primary font-bold hover:underline">
+                Staff Portal Login
+              </Link>
+            </p>
             <p className="text-xs text-slate-400 font-medium">
               By continuing, you agree to Biensante's <a href="#" className="text-primary hover:underline">Terms of Service</a> and <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
             </p>

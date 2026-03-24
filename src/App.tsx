@@ -14,6 +14,7 @@ import PatientsVisitors from "./pages/PatientsVisitors";
 import FindDoctor from "./pages/FindDoctor";
 import PatientPortal from "./pages/PatientPortal";
 import AdminPortal from "./pages/AdminPortal";
+import AdminLogin from "./pages/AdminLogin";
 import Location from "./pages/Location";
 import BookAppointment from "./pages/BookAppointment";
 import NotFound from "./pages/NotFound";
@@ -52,6 +53,7 @@ const App = () => {
               <Route path="/services/:slug" element={<ServiceDetail />} />
               <Route path="/patient-portal" element={<PatientPortal />} />
               <Route path="/admin-portal" element={<AdminPortal />} />
+              <Route path="/admin-login" element={<AdminLogin />} />
               <Route path="/location" element={<Location />} />
               <Route path="/book-appointment" element={<BookAppointment />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
