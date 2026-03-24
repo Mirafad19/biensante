@@ -294,19 +294,30 @@ const PatientPortal = () => {
     let unsubVitals: (() => void) | undefined;
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      
       if (currentUser) {
-        // Fetch user profile data
+        // Fetch user profile data to check role
         try {
           const userDoc = await getDoc(doc(db, "users", currentUser.uid));
           if (userDoc.exists()) {
-            setUserData(userDoc.data() as UserData);
+            const data = userDoc.data() as UserData;
+            if (data.role === "admin") {
+              // Redirect admin to admin portal
+              toast.info("Redirecting to Staff Portal...");
+              navigate("/admin-portal");
+              return;
+            }
+            setUserData(data);
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
         }
-
+        setUser(currentUser);
+      } else {
+        setUser(null);
+        setUserData(null);
+      }
+      
+      if (currentUser) {
         // Fetch appointments
         try {
           const aptsQuery = query(
@@ -474,7 +485,7 @@ const PatientPortal = () => {
       if (unsubInvoices) unsubInvoices();
       if (unsubVitals) unsubVitals();
     };
-  }, []);
+  }, [navigate]);
 
   const getLatestVital = (type: string) => {
     const filtered = vitals.filter(v => v.type === type);
@@ -1734,7 +1745,7 @@ const PatientPortal = () => {
 
         <div className="relative z-10">
           <div className="flex items-center mb-12">
-            <img src={logo} alt="BIENSANTE" className="h-16 w-auto object-contain brightness-0 invert" />
+            <img src={logo} alt="BIENSANTE" className="h-16 w-auto object-contain" />
           </div>
 
           <div className="max-w-md">

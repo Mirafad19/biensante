@@ -24,7 +24,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  ArrowUpRight
+  ArrowUpRight,
+  Video
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -64,8 +65,7 @@ interface Vital {
   type: string;
   value: string;
   unit: string;
-  date: string;
-  timestamp: Timestamp;
+  date: Timestamp;
 }
 
 interface UserData {
@@ -82,7 +82,7 @@ interface LabResult {
   unit: string;
   status: string;
   category: string;
-  date: string;
+  date: Timestamp;
 }
 
 interface Prescription {
@@ -92,6 +92,7 @@ interface Prescription {
   frequency: string;
   status: string;
   doctorName: string;
+  timestamp?: Timestamp;
 }
 
 interface Invoice {
@@ -100,6 +101,19 @@ interface Invoice {
   amount: number;
   status: string;
   dueDate: string;
+  createdAt: Timestamp;
+}
+
+interface TelehealthSession {
+  id: string;
+  patientUid: string;
+  doctorUid: string;
+  doctorName: string;
+  status: string;
+  startTime: Timestamp;
+  endTime: Timestamp;
+  meetingLink: string;
+  roomName: string;
 }
 
 const AdminPortal = () => {
@@ -117,6 +131,7 @@ const AdminPortal = () => {
   const [patientLabs, setPatientLabs] = useState<LabResult[]>([]);
   const [patientPrescriptions, setPatientPrescriptions] = useState<Prescription[]>([]);
   const [patientInvoices, setPatientInvoices] = useState<Invoice[]>([]);
+  const [patientTelehealth, setPatientTelehealth] = useState<TelehealthSession[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -126,6 +141,14 @@ const AdminPortal = () => {
     activePrescriptions: 0,
     pendingInvoices: 0
   });
+
+  // Global lists for other tabs
+  const [allVitals, setAllVitals] = useState<Vital[]>([]);
+  const [allLabs, setAllLabs] = useState<LabResult[]>([]);
+  const [allPrescriptions, setAllPrescriptions] = useState<Prescription[]>([]);
+  const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
+  const [allTelehealthSessions, setAllTelehealthSessions] = useState<TelehealthSession[]>([]);
+  const [isGlobalLoading, setIsGlobalLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -170,6 +193,13 @@ const AdminPortal = () => {
         activePrescriptions: presSnap.size,
         pendingInvoices: invSnap.size
       });
+
+      // Fetch global data for other tabs
+      setAllVitals(vitalsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vital)));
+      setAllLabs((await getDocs(collection(db, "lab_results"))).docs.map(doc => ({ id: doc.id, ...doc.data() } as LabResult)));
+      setAllPrescriptions((await getDocs(collection(db, "prescriptions"))).docs.map(doc => ({ id: doc.id, ...doc.data() } as Prescription)));
+      setAllInvoices((await getDocs(collection(db, "invoices"))).docs.map(doc => ({ id: doc.id, ...doc.data() } as Invoice)));
+      setAllTelehealthSessions((await getDocs(collection(db, "telehealth_sessions"))).docs.map(doc => ({ id: doc.id, ...doc.data() } as TelehealthSession)));
     } catch (error) {
       console.error("Error fetching stats:", error);
     }
@@ -190,7 +220,7 @@ const AdminPortal = () => {
       setPatientVitals(vitalsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vital)));
 
       // Fetch Labs
-      const labsQ = query(collection(db, "labResults"), where("patientUid", "==", patientUid));
+      const labsQ = query(collection(db, "lab_results"), where("patientUid", "==", patientUid));
       const labsSnap = await getDocs(labsQ);
       setPatientLabs(labsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as LabResult)));
 
@@ -203,6 +233,11 @@ const AdminPortal = () => {
       const invQ = query(collection(db, "invoices"), where("patientUid", "==", patientUid));
       const invSnap = await getDocs(invQ);
       setPatientInvoices(invSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Invoice)));
+
+      // Fetch Telehealth
+      const teleQ = query(collection(db, "telehealth_sessions"), where("patientUid", "==", patientUid));
+      const teleSnap = await getDocs(teleQ);
+      setPatientTelehealth(teleSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as TelehealthSession)));
     } catch (error) {
       console.error("Error fetching history:", error);
       toast.error("Failed to load patient history");
@@ -261,8 +296,7 @@ const AdminPortal = () => {
         type,
         value,
         unit,
-        date: new Date().toISOString().split('T')[0],
-        timestamp: serverTimestamp(),
+        date: serverTimestamp(),
       });
       toast.success("Vital recorded successfully");
       e.currentTarget.reset();
@@ -281,15 +315,14 @@ const AdminPortal = () => {
     const status = formData.get("status") as string;
 
     try {
-      await addDoc(collection(db, "labResults"), {
+      await addDoc(collection(db, "lab_results"), {
         patientUid: selectedPatient.uid,
         testName: title,
         value: formData.get("value") as string || "N/A",
         unit: formData.get("unit") as string || "",
-        date: new Date().toISOString().split('T')[0],
+        date: serverTimestamp(),
         status,
         category: formData.get("category") as string || "General",
-        timestamp: serverTimestamp(),
       });
       toast.success("Lab result added successfully");
       e.currentTarget.reset();
@@ -341,7 +374,7 @@ const AdminPortal = () => {
         amount,
         status: "unpaid",
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        timestamp: serverTimestamp(),
+        createdAt: serverTimestamp(),
       });
       toast.success("Invoice generated successfully");
       e.currentTarget.reset();
@@ -367,7 +400,7 @@ const AdminPortal = () => {
         {/* Sidebar */}
         <aside className="w-72 bg-slate-900 border-r border-slate-800 hidden lg:flex flex-col p-6 text-white">
           <div className="flex items-center mb-10 px-2">
-            <img src={logo} alt="Biensante Staff" className="h-12 w-auto object-contain brightness-0 invert" />
+            <img src={logo} alt="Biensante Staff" className="h-12 w-auto object-contain" />
           </div>
 
           <nav className="space-y-1 flex-grow">
@@ -383,10 +416,36 @@ const AdminPortal = () => {
               active={activeTab === "patients"} 
               onClick={() => setActiveTab("patients")}
             />
-            <SidebarItem icon={<Activity className="w-5 h-5" />} label="Clinical Records" />
-            <SidebarItem icon={<FileText className="w-5 h-5" />} label="Lab Management" />
-            <SidebarItem icon={<Pill className="w-5 h-5" />} label="Pharmacy" />
-            <SidebarItem icon={<CreditCard className="w-5 h-5" />} label="Billing & Finance" />
+            <SidebarItem 
+              icon={<Activity className="w-5 h-5" />} 
+              label="Clinical Records" 
+              active={activeTab === "clinical"}
+              onClick={() => setActiveTab("clinical")}
+            />
+            <SidebarItem 
+              icon={<FileText className="w-5 h-5" />} 
+              label="Lab Management" 
+              active={activeTab === "labs"}
+              onClick={() => setActiveTab("labs")}
+            />
+            <SidebarItem 
+              icon={<Pill className="w-5 h-5" />} 
+              label="Pharmacy" 
+              active={activeTab === "pharmacy"}
+              onClick={() => setActiveTab("pharmacy")}
+            />
+            <SidebarItem 
+              icon={<CreditCard className="w-5 h-5" />} 
+              label="Billing & Finance" 
+              active={activeTab === "billing"}
+              onClick={() => setActiveTab("billing")}
+            />
+            <SidebarItem 
+              icon={<Video className="w-5 h-5" />} 
+              label="Telehealth" 
+              active={activeTab === "telehealth"}
+              onClick={() => setActiveTab("telehealth")}
+            />
           </nav>
 
           <div className="mt-auto pt-6 border-t border-slate-800">
@@ -415,7 +474,7 @@ const AdminPortal = () => {
         {/* Main Content */}
         <main className="flex-grow p-8 lg:p-12 overflow-y-auto">
           <div className="max-w-6xl mx-auto">
-            {activeTab === "dashboard" ? (
+            {activeTab === "dashboard" && (
               <div className="space-y-10">
                 <header>
                   <h2 className="text-3xl font-black text-slate-900 tracking-tight">Staff Dashboard</h2>
@@ -477,16 +536,200 @@ const AdminPortal = () => {
                     </CardHeader>
                     <CardContent className="p-6">
                       <div className="grid grid-cols-2 gap-4">
-                        <QuickActionButton icon={<Plus className="w-5 h-5" />} label="Register Patient" color="bg-blue-50 text-blue-600" />
-                        <QuickActionButton icon={<FileText className="w-5 h-5" />} label="New Lab Request" color="bg-emerald-50 text-emerald-600" />
-                        <QuickActionButton icon={<Pill className="w-5 h-5" />} label="Issue Medication" color="bg-purple-50 text-purple-600" />
-                        <QuickActionButton icon={<TrendingUp className="w-5 h-5" />} label="View Reports" color="bg-orange-50 text-orange-600" />
+                        <QuickActionButton icon={<Plus className="w-5 h-5" />} label="Register Patient" color="bg-blue-50 text-blue-600" onClick={() => setActiveTab("patients")} />
+                        <QuickActionButton icon={<FileText className="w-5 h-5" />} label="New Lab Request" color="bg-emerald-50 text-emerald-600" onClick={() => setActiveTab("labs")} />
+                        <QuickActionButton icon={<Pill className="w-5 h-5" />} label="Issue Medication" color="bg-purple-50 text-purple-600" onClick={() => setActiveTab("pharmacy")} />
+                        <QuickActionButton icon={<TrendingUp className="w-5 h-5" />} label="View Reports" color="bg-orange-50 text-orange-600" onClick={() => setActiveTab("clinical")} />
                       </div>
                     </CardContent>
                   </Card>
                 </div>
               </div>
-            ) : (
+            )}
+
+            {activeTab === "clinical" && (
+              <div className="space-y-8">
+                <header>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Clinical Records</h2>
+                  <p className="text-slate-500 font-medium mt-1">Global view of all patient vital signs.</p>
+                </header>
+                <Card className="border-none shadow-sm rounded-3xl overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="divide-y divide-slate-100">
+                      {allVitals.map((vital) => (
+                        <div key={vital.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center">
+                              {vital.type === 'heart-rate' && <Heart className="w-6 h-6 text-red-500" />}
+                              {vital.type === 'body-temp' && <Thermometer className="w-6 h-6 text-orange-500" />}
+                              {vital.type === 'weight' && <Weight className="w-6 h-6 text-blue-500" />}
+                              {vital.type === 'blood-glucose' && <Activity className="w-6 h-6 text-emerald-500" />}
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-900 capitalize">{vital.type.replace('-', ' ')}</p>
+                              <p className="text-xs text-slate-500">
+                                {vital.date?.toDate ? vital.date.toDate().toLocaleString() : "N/A"}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xl font-black text-slate-900">{vital.value} <span className="text-xs font-medium text-slate-500">{vital.unit}</span></p>
+                          </div>
+                        </div>
+                      ))}
+                      {allVitals.length === 0 && (
+                        <div className="p-12 text-center text-slate-400 italic">No clinical records found.</div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "labs" && (
+              <div className="space-y-8">
+                <header>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Lab Management</h2>
+                  <p className="text-slate-500 font-medium mt-1">Global view of all laboratory results.</p>
+                </header>
+                <Card className="border-none shadow-sm rounded-3xl overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="divide-y divide-slate-100">
+                      {allLabs.map((lab) => (
+                        <div key={lab.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                          <div>
+                            <h4 className="font-bold text-slate-900">{lab.testName}</h4>
+                            <p className="text-xs text-slate-500">{lab.category} • {lab.date?.toDate ? lab.date.toDate().toLocaleDateString() : "N/A"}</p>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            <div className="text-right mr-4">
+                              <p className="font-black text-slate-900">{lab.value} <span className="text-xs font-medium text-slate-500">{lab.unit}</span></p>
+                            </div>
+                            <Badge className={
+                              lab.status === 'normal' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' :
+                              lab.status === 'abnormal' ? 'bg-orange-100 text-orange-700 hover:bg-orange-100' :
+                              'bg-red-100 text-red-700 hover:bg-red-100'
+                            }>
+                              {lab.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                      {allLabs.length === 0 && (
+                        <div className="p-12 text-center text-slate-400 italic">No lab results found.</div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "pharmacy" && (
+              <div className="space-y-8">
+                <header>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Pharmacy</h2>
+                  <p className="text-slate-500 font-medium mt-1">Global view of all prescriptions issued.</p>
+                </header>
+                <Card className="border-none shadow-sm rounded-3xl overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="divide-y divide-slate-100">
+                      {allPrescriptions.map((pres) => (
+                        <div key={pres.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                          <div>
+                            <h4 className="font-bold text-slate-900">{pres.medicationName}</h4>
+                            <p className="text-xs text-slate-500">{pres.dosage} • {pres.frequency}</p>
+                            <p className="text-[10px] text-slate-400 mt-1">Prescribed by {pres.doctorName}</p>
+                          </div>
+                          <Badge variant="outline" className="text-primary border-primary/20">
+                            {pres.status}
+                          </Badge>
+                        </div>
+                      ))}
+                      {allPrescriptions.length === 0 && (
+                        <div className="p-12 text-center text-slate-400 italic">No prescriptions found.</div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "billing" && (
+              <div className="space-y-8">
+                <header>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Billing & Finance</h2>
+                  <p className="text-slate-500 font-medium mt-1">Global view of all invoices and payments.</p>
+                </header>
+                <Card className="border-none shadow-sm rounded-3xl overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="divide-y divide-slate-100">
+                      {allInvoices.map((inv) => (
+                        <div key={inv.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                          <div>
+                            <h4 className="font-bold text-slate-900">{inv.description}</h4>
+                            <p className="text-xs text-slate-500">Due: {inv.dueDate}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-black text-slate-900">₦{inv.amount.toLocaleString()}</p>
+                            <Badge className={inv.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}>
+                              {inv.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                      {allInvoices.length === 0 && (
+                        <div className="p-12 text-center text-slate-400 italic">No invoices found.</div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "telehealth" && (
+              <div className="space-y-8">
+                <header>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Telehealth Sessions</h2>
+                  <p className="text-slate-500 font-medium mt-1">Manage virtual consultation sessions.</p>
+                </header>
+                <Card className="border-none shadow-sm rounded-3xl overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="divide-y divide-slate-100">
+                      {allTelehealthSessions.map((session) => (
+                        <div key={session.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                          <div>
+                            <h4 className="font-bold text-slate-900">Session with {session.doctorName}</h4>
+                            <p className="text-xs text-slate-500">
+                              {session.startTime?.toDate ? session.startTime.toDate().toLocaleString() : "N/A"}
+                            </p>
+                            <p className="text-[10px] text-slate-400 mt-1">Room: {session.roomName}</p>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            <Badge className={
+                              session.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
+                              session.status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
+                              'bg-slate-200 text-slate-600'
+                            }>
+                              {session.status}
+                            </Badge>
+                            {session.meetingLink && (
+                              <Button variant="outline" size="sm" className="rounded-xl font-bold" onClick={() => window.open(session.meetingLink, '_blank')}>
+                                Join Call
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {allTelehealthSessions.length === 0 && (
+                        <div className="p-12 text-center text-slate-400 italic">No telehealth sessions scheduled.</div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "patients" && (
               <>
                 <header className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
                   <div>
@@ -615,6 +858,7 @@ const AdminPortal = () => {
                         <TabsTrigger value="lab" className="rounded-xl px-8 font-bold py-2.5">Lab Reports</TabsTrigger>
                         <TabsTrigger value="pharmacy" className="rounded-xl px-8 font-bold py-2.5">Pharmacy</TabsTrigger>
                         <TabsTrigger value="billing" className="rounded-xl px-8 font-bold py-2.5">Billing</TabsTrigger>
+                        <TabsTrigger value="telehealth" className="rounded-xl px-8 font-bold py-2.5">Telehealth</TabsTrigger>
                       </TabsList>
                       {/* ... tabs content ... */}
 
@@ -673,7 +917,9 @@ const AdminPortal = () => {
                                       </div>
                                       <div>
                                         <p className="font-bold text-slate-900 capitalize">{vital.type.replace('-', ' ')}</p>
-                                        <p className="text-xs text-slate-500">{vital.date}</p>
+                                        <p className="text-xs text-slate-500">
+                                          {vital.date?.toDate ? vital.date.toDate().toLocaleString() : "N/A"}
+                                        </p>
                                       </div>
                                     </div>
                                     <div className="text-right">
@@ -758,7 +1004,9 @@ const AdminPortal = () => {
                                       <div className="text-slate-500">
                                         <span className="font-medium text-slate-700">{lab.value} {lab.unit}</span> • {lab.category}
                                       </div>
-                                      <div className="text-slate-400">{lab.date}</div>
+                                      <div className="text-slate-400">
+                                        {lab.date?.toDate ? lab.date.toDate().toLocaleDateString() : "N/A"}
+                                      </div>
                                     </div>
                                   </div>
                                 ))}
@@ -902,6 +1150,53 @@ const AdminPortal = () => {
                       </Card>
                     </div>
                   </TabsContent>
+
+                  <TabsContent value="telehealth">
+                    <Card className="border-none shadow-sm">
+                      <CardHeader>
+                        <CardTitle className="text-lg">Telehealth Sessions</CardTitle>
+                        <CardDescription>Virtual consultations for {selectedPatient.firstName}.</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ScrollArea className="h-[400px] pr-4">
+                          {isHistoryLoading ? (
+                            <div className="flex justify-center py-8">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            </div>
+                          ) : patientTelehealth.length > 0 ? (
+                            <div className="space-y-4">
+                              {patientTelehealth.map((session) => (
+                                <div key={session.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                                  <div>
+                                    <h4 className="font-bold text-slate-900">Session with {session.doctorName}</h4>
+                                    <p className="text-xs text-slate-500">
+                                      {session.startTime?.toDate ? session.startTime.toDate().toLocaleString() : "N/A"}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center space-x-4">
+                                    <Badge className={
+                                      session.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
+                                      session.status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
+                                      'bg-slate-200 text-slate-600'
+                                    }>
+                                      {session.status}
+                                    </Badge>
+                                    {session.meetingLink && (
+                                      <Button variant="outline" size="sm" className="rounded-xl font-bold" onClick={() => window.open(session.meetingLink, '_blank')}>
+                                        Join
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-12 text-slate-400">No telehealth sessions found.</div>
+                          )}
+                        </ScrollArea>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
                 </Tabs>
               </div>
             ) : (
@@ -954,8 +1249,11 @@ const AdminStatCard = ({ icon, label, value, trend }: { icon: React.ReactNode, l
   </Card>
 );
 
-const QuickActionButton = ({ icon, label, color }: { icon: React.ReactNode, label: string, color: string }) => (
-  <button className={`flex flex-col items-center justify-center p-4 rounded-3xl transition-all hover:scale-[1.05] active:scale-[0.98] ${color}`}>
+const QuickActionButton = ({ icon, label, color, onClick }: { icon: React.ReactNode, label: string, color: string, onClick?: () => void }) => (
+  <button 
+    onClick={onClick}
+    className={`flex flex-col items-center justify-center p-4 rounded-3xl transition-all hover:scale-[1.05] active:scale-[0.98] ${color}`}
+  >
     <div className="mb-2">{icon}</div>
     <span className="text-xs font-bold text-center">{label}</span>
   </button>
