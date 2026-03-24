@@ -179,7 +179,10 @@ const PatientPortal = () => {
   const [vitals, setVitals] = useState<Vital[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
-  const [loginRole, setLoginRole] = useState<"patient" | "admin">("patient");
+  const [loginRole, setLoginRole] = useState<"patient" | "admin">(() => {
+    const params = new URLSearchParams(window.location.search);
+    return (params.get("role") as "patient" | "admin") || "patient";
+  });
   const [activeTab, setActiveTab] = useState("dashboard");
   const [newMessage, setNewMessage] = useState("");
 
@@ -609,6 +612,12 @@ const PatientPortal = () => {
     } catch (error) {
       toast.error("Sign out failed");
     }
+  };
+
+  const handleRoleSwitch = (role: "patient" | "admin") => {
+    if (role === loginRole) return;
+    // Force a browser refresh as requested to clear all inputs and state
+    window.location.href = window.location.pathname + "?role=" + role;
   };
 
   if (isLoading) {
@@ -1704,160 +1713,208 @@ const PatientPortal = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
-      <Header />
-      <main className="flex-grow flex items-center justify-center py-12 px-6 relative overflow-hidden">
-        {/* Background Decorative Elements */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-400/10 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-white flex flex-col lg:flex-row">
+      {/* Left Side - Branding & Image (Inspired by Duchess) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-slate-900 relative overflow-hidden flex-col justify-between p-12 text-white">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=2000" 
+            alt="Hospital Hallway" 
+            className="w-full h-full object-cover opacity-40"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
         </div>
 
-        <Card className="w-full max-w-md shadow-2xl border-none bg-white/80 backdrop-blur-xl z-10">
-          <CardHeader className="space-y-1 text-center pb-8">
-            <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-3 hover:rotate-0 transition-transform duration-300">
-              <User className="w-10 h-10 text-primary" />
+        <div className="relative z-10">
+          <div className="flex items-center space-x-3 mb-12">
+            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20">
+              <Activity className="text-white w-7 h-7" />
             </div>
-            <CardTitle className="text-3xl font-bold tracking-tight text-slate-900">
-              {loginRole === "patient" ? "Patient Portal" : "Admin Portal"}
-            </CardTitle>
-            <CardDescription className="text-slate-500">Your secure gateway to Biensante Healthcare.</CardDescription>
-            
-            <div className="flex justify-center mt-6">
-              <div className="bg-slate-100 p-1 rounded-xl flex items-center w-full max-w-[240px]">
+            <span className="text-3xl font-black tracking-tighter">BIENSANTE</span>
+          </div>
+
+          <div className="max-w-md">
+            <h1 className="text-6xl font-black leading-[1.1] mb-6 tracking-tight">
+              Secure access to your <span className="text-primary italic">care records</span>
+            </h1>
+            <p className="text-xl text-slate-300 font-medium leading-relaxed">
+              Experience world-class healthcare management at your fingertips. Your health, our priority.
+            </p>
+          </div>
+        </div>
+
+        <div className="relative z-10 flex items-center space-x-6 text-sm font-bold tracking-widest uppercase text-slate-400">
+          <div className="flex items-center space-x-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span>HIPAA Compliant</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span>256-bit Encryption</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Login Form */}
+      <main className="flex-1 flex flex-col items-center justify-center p-8 lg:p-16 bg-white relative">
+        <div className="w-full max-w-[440px] space-y-8">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex justify-center mb-8">
+            <div className="flex items-center space-x-2">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+                <Activity className="text-white w-6 h-6" />
+              </div>
+              <span className="text-2xl font-black tracking-tighter">BIENSANTE</span>
+            </div>
+          </div>
+
+          <div className="text-center lg:text-left space-y-2">
+            <div className="flex justify-center lg:justify-start mb-6">
+              <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center w-full max-w-[280px] shadow-inner">
                 <button 
-                  onClick={() => setLoginRole("patient")}
-                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${loginRole === "patient" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                  onClick={() => handleRoleSwitch("patient")}
+                  className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all duration-300 ${loginRole === "patient" ? "bg-white text-primary shadow-md scale-[1.02]" : "text-slate-500 hover:text-slate-700"}`}
                 >
                   Patient
                 </button>
                 <button 
-                  onClick={() => setLoginRole("admin")}
-                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${loginRole === "admin" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                  onClick={() => handleRoleSwitch("admin")}
+                  className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all duration-300 ${loginRole === "admin" ? "bg-white text-primary shadow-md scale-[1.02]" : "text-slate-500 hover:text-slate-700"}`}
                 >
                   Admin
                 </button>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-8 p-1 bg-slate-100 rounded-xl">
-                <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Login</TabsTrigger>
-                <TabsTrigger value="register" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Register</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-slate-700 font-medium">Email Address</Label>
-                    <div className="relative group">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
-                      <Input id="email" name="email" type="email" placeholder="name@example.com" className="pl-10 h-12 bg-slate-50/50 border-slate-200 focus:bg-white transition-all" required />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="password" className="text-slate-700 font-medium">Password</Label>
-                      <a href="#" className="text-xs text-primary font-semibold hover:underline">Forgot password?</a>
-                    </div>
-                    <div className="relative group">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
-                      <Input id="password" name="password" type="password" className="pl-10 h-12 bg-slate-50/50 border-slate-200 focus:bg-white transition-all" required />
-                    </div>
-                  </div>
-                  <Button type="submit" className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]" disabled={isActionLoading}>
-                    {isActionLoading ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        <span>Authenticating...</span>
+            
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+              {loginRole === "patient" ? "Patient Sign In" : "Staff Sign In"}
+            </h2>
+            <p className="text-slate-500 font-medium">
+              {loginRole === "patient" 
+                ? "Use your Patient ID and password to access your portal." 
+                : "Staff account? Use the Admin login tab above."}
+            </p>
+          </div>
+
+          <Card className="border-none shadow-none bg-transparent">
+            <CardContent className="p-0">
+              <Tabs defaultValue="login" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-8 p-1.5 bg-slate-100 rounded-2xl shadow-inner">
+                  <TabsTrigger value="login" className="rounded-xl font-bold py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-md">Login</TabsTrigger>
+                  <TabsTrigger value="register" className="rounded-xl font-bold py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-md">Register</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="login" className="mt-0">
+                  <form onSubmit={handleLogin} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm font-bold text-slate-700 ml-1">Email Address</Label>
+                      <div className="relative group">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                        <Input id="email" name="email" type="email" placeholder="name@example.com" className="pl-12 h-14 bg-slate-50 border-slate-200 rounded-2xl focus:bg-white transition-all text-base" required />
                       </div>
-                    ) : "Sign In to Portal"}
-                  </Button>
-
-                  <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <Separator className="w-full" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white px-2 text-slate-400">Or continue with</span>
-                    </div>
-                  </div>
-
-                  <Button 
-                    variant="outline" 
-                    type="button" 
-                    className="w-full h-12 border-slate-200 hover:bg-slate-50 font-semibold"
-                    onClick={handleGoogleSignIn}
-                    disabled={isActionLoading}
-                  >
-                    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                      <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-                    </svg>
-                    Google
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="register">
-                <form onSubmit={handleRegister} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="first-name" className="text-slate-700 font-medium">First Name</Label>
-                      <Input id="first-name" name="first-name" placeholder="John" className="h-11 bg-slate-50/50" required />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="last-name" className="text-slate-700 font-medium">Last Name</Label>
-                      <Input id="last-name" name="last-name" placeholder="Doe" className="h-11 bg-slate-50/50" required />
+                      <div className="flex items-center justify-between ml-1">
+                        <Label htmlFor="password" className="text-sm font-bold text-slate-700">Password</Label>
+                        <a href="#" className="text-xs text-primary font-bold hover:underline">Forgot password?</a>
+                      </div>
+                      <div className="relative group">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                        <Input id="password" name="password" type="password" placeholder="••••••••" className="pl-12 h-14 bg-slate-50 border-slate-200 rounded-2xl focus:bg-white transition-all text-base" required />
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-email" className="text-slate-700 font-medium">Email Address</Label>
-                    <Input id="reg-email" name="reg-email" type="email" placeholder="name@example.com" className="h-11 bg-slate-50/50" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-password" className="text-slate-700 font-medium">Create Password</Label>
-                    <Input id="reg-password" name="reg-password" type="password" placeholder="••••••••" className="h-11 bg-slate-50/50" required />
-                  </div>
-                  <Button type="submit" className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/20 mt-4" disabled={isActionLoading}>
-                    {isActionLoading ? "Creating Account..." : "Create My Account"}
-                  </Button>
+                    <Button type="submit" className="w-full h-14 bg-primary hover:bg-primary/90 text-white text-lg font-black rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] mt-4" disabled={isActionLoading}>
+                      {isActionLoading ? (
+                        <div className="flex items-center space-x-3">
+                          <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          <span>Authenticating...</span>
+                        </div>
+                      ) : "Log In"}
+                    </Button>
 
-                  <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <Separator className="w-full" />
+                    <div className="relative my-8">
+                      <div className="absolute inset-0 flex items-center">
+                        <Separator className="w-full" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase font-black tracking-widest">
+                        <span className="bg-white px-4 text-slate-400">Or continue with</span>
+                      </div>
                     </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white px-2 text-slate-400">Or continue with</span>
-                    </div>
-                  </div>
 
-                  <Button 
-                    variant="outline" 
-                    type="button" 
-                    className="w-full h-12 border-slate-200 hover:bg-slate-50 font-semibold"
-                    onClick={handleGoogleSignIn}
-                    disabled={isActionLoading}
-                  >
-                    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                      <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-                    </svg>
-                    Google
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4 text-center text-xs text-slate-400 pt-0">
-            <div className="flex items-center justify-center space-x-2">
-              <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-              <span>HIPAA Compliant & Secure</span>
-            </div>
-            <p>By continuing, you agree to Biensante's Terms of Service and Privacy Policy.</p>
-          </CardFooter>
-        </Card>
+                    <Button 
+                      variant="outline" 
+                      type="button" 
+                      className="w-full h-14 border-slate-200 hover:bg-slate-50 font-bold rounded-2xl text-base"
+                      onClick={handleGoogleSignIn}
+                      disabled={isActionLoading}
+                    >
+                      <svg className="mr-3 h-5 w-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                        <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                      </svg>
+                      Google
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="register" className="mt-0">
+                  <form onSubmit={handleRegister} className="space-y-5">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="first-name" className="text-sm font-bold text-slate-700 ml-1">First Name</Label>
+                        <Input id="first-name" name="first-name" placeholder="John" className="h-12 bg-slate-50 border-slate-200 rounded-xl" required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="last-name" className="text-sm font-bold text-slate-700 ml-1">Last Name</Label>
+                        <Input id="last-name" name="last-name" placeholder="Doe" className="h-12 bg-slate-50 border-slate-200 rounded-xl" required />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reg-email" className="text-sm font-bold text-slate-700 ml-1">Email Address</Label>
+                      <Input id="reg-email" name="reg-email" type="email" placeholder="name@example.com" className="h-12 bg-slate-50 border-slate-200 rounded-xl" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reg-password" className="text-sm font-bold text-slate-700 ml-1">Create Password</Label>
+                      <Input id="reg-password" name="reg-password" type="password" placeholder="••••••••" className="h-12 bg-slate-50 border-slate-200 rounded-xl" required />
+                    </div>
+                    <Button type="submit" className="w-full h-14 bg-primary hover:bg-primary/90 text-white text-lg font-black rounded-2xl shadow-xl shadow-primary/20 mt-6" disabled={isActionLoading}>
+                      {isActionLoading ? "Creating Account..." : "Create My Account"}
+                    </Button>
+
+                    <div className="relative my-8">
+                      <div className="absolute inset-0 flex items-center">
+                        <Separator className="w-full" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase font-black tracking-widest">
+                        <span className="bg-white px-4 text-slate-400">Or continue with</span>
+                      </div>
+                    </div>
+
+                    <Button 
+                      variant="outline" 
+                      type="button" 
+                      className="w-full h-14 border-slate-200 hover:bg-slate-50 font-bold rounded-2xl text-base"
+                      onClick={handleGoogleSignIn}
+                      disabled={isActionLoading}
+                    >
+                      <svg className="mr-3 h-5 w-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                        <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                      </svg>
+                      Google
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+
+          <div className="text-center space-y-4 pt-4">
+            <p className="text-xs text-slate-400 font-medium">
+              By continuing, you agree to Biensante's <a href="#" className="text-primary hover:underline">Terms of Service</a> and <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
+            </p>
+          </div>
+        </div>
       </main>
-      <Footer />
     </div>
   );
 };
