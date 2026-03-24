@@ -72,7 +72,7 @@ import {
   Timestamp
 } from "firebase/firestore";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -169,6 +169,7 @@ interface Vital {
 const PatientPortal = () => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [labResults, setLabResults] = useState<LabResult[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
@@ -178,6 +179,7 @@ const PatientPortal = () => {
   const [vitals, setVitals] = useState<Vital[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [loginRole, setLoginRole] = useState<"patient" | "admin">("patient");
   const [activeTab, setActiveTab] = useState("dashboard");
   const [newMessage, setNewMessage] = useState("");
 
@@ -426,7 +428,7 @@ const PatientPortal = () => {
           const vitalsQuery = query(
             collection(db, "vitals"),
             where("patientUid", "==", currentUser.uid),
-            orderBy("date", "desc"),
+            orderBy("timestamp", "desc"),
             limit(50)
           );
 
@@ -439,30 +441,6 @@ const PatientPortal = () => {
         } catch (error) {
           console.error("Error setting up vitals listener:", error);
         }
-
-        // Mock data for demo purposes (if collections are empty)
-        setLabResults([
-          { id: '1', testName: 'Blood Glucose', value: '95', unit: 'mg/dL', status: 'normal', date: new Date(), category: 'Metabolic' },
-          { id: '2', testName: 'Hemoglobin A1c', value: '5.4', unit: '%', status: 'normal', date: new Date(), category: 'Metabolic' },
-          { id: '3', testName: 'LDL Cholesterol', value: '135', unit: 'mg/dL', status: 'abnormal', date: new Date(), category: 'Lipid Panel' }
-        ]);
-
-        setPrescriptions([
-          { id: '1', medicationName: 'Lisinopril', dosage: '10mg', frequency: 'Once daily', status: 'active', doctorName: 'Dr. Sarah Wilson' },
-          { id: '2', medicationName: 'Metformin', dosage: '500mg', frequency: 'Twice daily', status: 'active', doctorName: 'Dr. James Chen' }
-        ]);
-
-        setMessages([
-          { id: '1', senderId: 'doctor-1', senderName: 'Dr. Sarah Wilson', content: 'Your recent blood work looks excellent. Keep up the good work!', timestamp: new Date(Date.now() - 3600000) },
-          { id: '2', senderId: currentUser.uid, senderName: 'You', content: 'Thank you, doctor. Should I continue the same dosage?', timestamp: new Date(Date.now() - 1800000) },
-          { id: '3', senderId: 'doctor-1', senderName: 'Dr. Sarah Wilson', content: 'Yes, let\'s stay on the current plan for another 3 months.', timestamp: new Date(Date.now() - 600000) }
-        ]);
-
-        setInvoices([
-          { id: 'INV-001', amount: 75000.00, status: 'paid', description: 'General Consultation', dueDate: '2026-03-15' },
-          { id: 'INV-002', amount: 22500.00, status: 'unpaid', description: 'Lab Processing Fee', dueDate: '2026-04-01' },
-          { id: 'INV-003', amount: 100000.00, status: 'pending', description: 'Specialist Referral', dueDate: '2026-04-10' }
-        ]);
       } else {
         setUserData(null);
         setAppointments([]);
@@ -495,9 +473,24 @@ const PatientPortal = () => {
   }, []);
 
   const getLatestVital = (type: string) => {
-    const latest = vitals.find(v => v.type === type);
-    return latest ? latest.value : null;
+    const filtered = vitals.filter(v => v.type === type);
+    if (filtered.length === 0) return null;
+    return filtered.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis())[0];
   };
+
+  const heartRate = getLatestVital('heart-rate');
+  const bodyTemp = getLatestVital('body-temp');
+  const weight = getLatestVital('weight');
+  const bloodGlucose = getLatestVital('blood-glucose');
+
+  // Derived data for charts
+  const chartData = [...vitals].reverse().map(v => ({
+    name: v.timestamp instanceof Date ? v.timestamp.toLocaleDateString() : 
+          v.timestamp?.toDate ? v.timestamp.toDate().toLocaleDateString() : "Unknown",
+    bpm: v.type === "heart-rate" ? parseInt(v.value) : null,
+    glucose: v.type === "blood-glucose" ? parseInt(v.value) : null,
+    temp: v.type === "body-temp" ? parseFloat(v.value) : null,
+  })).filter(d => d.bpm !== null || d.glucose !== null || d.temp !== null);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -507,8 +500,24 @@ const PatientPortal = () => {
     const password = formData.get("password") as string;
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      toast.success("Welcome back to Biensante Portal");
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+      
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        if (loginRole === "admin" && data.role !== "admin") {
+          toast.error("This account does not have admin privileges.");
+          await signOut(auth);
+          return;
+        }
+        
+        if (data.role === "admin") {
+          toast.success("Welcome to Admin Portal");
+          navigate("/admin-portal");
+        } else {
+          toast.success("Welcome back to Biensante Portal");
+        }
+      }
     } catch (error) {
       const err = error as Error;
       toast.error("Login failed", { description: err.message });
@@ -535,7 +544,7 @@ const PatientPortal = () => {
         email: email,
         firstName,
         lastName,
-        role: "patient",
+        role: loginRole, // Use the selected role
         patientId: `BS-${Math.floor(100000 + Math.random() * 900000)}`,
         createdAt: serverTimestamp(),
       };
@@ -568,13 +577,23 @@ const PatientPortal = () => {
           email: user.email,
           firstName: firstName || "User",
           lastName: lastName || "",
-          role: "patient",
+          role: loginRole, // Use the selected role
           patientId: `BS-${Math.floor(100000 + Math.random() * 900000)}`,
           createdAt: serverTimestamp(),
         };
         await setDoc(doc(db, "users", user.uid), userProfile);
       }
-      toast.success("Signed in with Google successfully");
+      
+      const updatedUserDoc = await getDoc(doc(db, "users", user.uid));
+      if (updatedUserDoc.exists()) {
+        const data = updatedUserDoc.data();
+        if (data.role === "admin") {
+          toast.success("Welcome to Admin Portal");
+          navigate("/admin-portal");
+        } else {
+          toast.success("Signed in with Google successfully");
+        }
+      }
     } catch (error) {
       const err = error as Error;
       toast.error("Google Sign-in failed", { description: err.message });
@@ -744,34 +763,34 @@ const PatientPortal = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       <StatCard 
                         title="Heart Rate" 
-                        value={getLatestVital("HeartRate") || "72"} 
+                        value={heartRate ? heartRate.value : "--"} 
                         unit="bpm" 
                         icon={<Heart className="text-red-500" />} 
-                        trend="Real-time"
+                        trend={heartRate ? "Real-time" : "No data"}
                         color="bg-red-50"
                       />
                       <StatCard 
                         title="Body Temp" 
-                        value={getLatestVital("Temp") || "98.6"} 
+                        value={bodyTemp ? bodyTemp.value : "--"} 
                         unit="°F" 
                         icon={<Thermometer className="text-orange-500" />} 
-                        trend="Normal"
+                        trend={bodyTemp ? "Normal" : "No data"}
                         color="bg-orange-50"
                       />
                       <StatCard 
                         title="Weight" 
-                        value={getLatestVital("Weight") || "165"} 
+                        value={weight ? weight.value : "--"} 
                         unit="lbs" 
                         icon={<Weight className="text-blue-500" />} 
-                        trend="Last recorded"
+                        trend={weight ? "Last recorded" : "No data"}
                         color="bg-blue-50"
                       />
                       <StatCard 
                         title="Blood Glucose" 
-                        value={getLatestVital("Oxygen") || "95"} 
+                        value={bloodGlucose ? bloodGlucose.value : "--"} 
                         unit="mg/dL" 
                         icon={<Activity className="text-emerald-500" />} 
-                        trend="Stable"
+                        trend={bloodGlucose ? "Stable" : "No data"}
                         color="bg-emerald-50"
                       />
                     </div>
@@ -845,13 +864,13 @@ const PatientPortal = () => {
                           </CardHeader>
                           <CardContent>
                             <div className="flex items-end space-x-2 mb-4">
-                              <span className="text-5xl font-bold">84</span>
+                              <span className="text-5xl font-bold">{vitals.length > 0 ? "84" : "--"}</span>
                               <span className="text-primary-foreground/80 mb-1">/100</span>
                             </div>
-                            <Progress value={84} className="h-2 bg-white/20" />
+                            <Progress value={vitals.length > 0 ? 84 : 0} className="h-2 bg-white/20" />
                             <p className="text-xs mt-4 text-primary-foreground/80 flex items-center">
                               <TrendingUp className="w-3 h-3 mr-1" />
-                              Up 4 points from last month
+                              {vitals.length > 0 ? "Up 4 points from last month" : "No activity recorded"}
                             </p>
                           </CardContent>
                         </Card>
@@ -1035,7 +1054,7 @@ const PatientPortal = () => {
                         </CardHeader>
                         <div className="h-[300px] w-full">
                           <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={healthData}>
+                            <AreaChart data={chartData.filter(d => d.bpm !== null)}>
                               <defs>
                                 <linearGradient id="colorBpm" x1="0" y1="0" x2="0" y2="1">
                                   <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
@@ -1063,7 +1082,7 @@ const PatientPortal = () => {
                         </CardHeader>
                         <div className="h-[300px] w-full">
                           <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={healthData}>
+                            <LineChart data={chartData.filter(d => d.glucose !== null)}>
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
                               <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
@@ -1083,29 +1102,38 @@ const PatientPortal = () => {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          {[
-                            { type: 'Blood Pressure', value: '120/80', unit: 'mmHg', date: 'Today, 08:30 AM', status: 'Normal' },
-                            { type: 'Weight', value: '164', unit: 'lbs', date: 'Yesterday, 07:15 AM', status: 'Stable' },
-                            { type: 'Oxygen Saturation', value: '98', unit: '%', date: 'Mar 20, 09:00 AM', status: 'Normal' }
-                          ].map((log, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-                              <div className="flex items-center space-x-4">
-                                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
-                                  <Activity className="w-5 h-5 text-primary" />
+                          {vitals.length > 0 ? (
+                            vitals.slice(0, 10).map((log, i) => (
+                              <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                                <div className="flex items-center space-x-4">
+                                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
+                                    {log.type === 'heart-rate' && <Heart className="w-5 h-5 text-red-500" />}
+                                    {log.type === 'body-temp' && <Thermometer className="w-5 h-5 text-orange-500" />}
+                                    {log.type === 'weight' && <Weight className="w-5 h-5 text-blue-500" />}
+                                    {log.type === 'blood-glucose' && <Activity className="w-5 h-5 text-emerald-500" />}
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-slate-900 capitalize">{log.type.replace('-', ' ')}</p>
+                                    <p className="text-xs text-slate-500">
+                                      {log.timestamp instanceof Date ? log.timestamp.toLocaleString() : 
+                                       log.timestamp?.toDate ? log.timestamp.toDate().toLocaleString() : "Unknown"}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="font-bold text-slate-900">{log.type}</p>
-                                  <p className="text-xs text-slate-500">{log.date}</p>
+                                <div className="text-right">
+                                  <p className="font-bold text-slate-900">{log.value} <span className="text-xs font-normal text-slate-500">{log.unit}</span></p>
+                                  <Badge variant="outline" className="text-[10px] h-5 bg-emerald-50 text-emerald-600 border-emerald-100">
+                                    Normal
+                                  </Badge>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <p className="font-bold text-slate-900">{log.value} <span className="text-xs font-normal text-slate-500">{log.unit}</span></p>
-                                <Badge variant="outline" className="text-[10px] h-5 bg-emerald-50 text-emerald-600 border-emerald-100">
-                                  {log.status}
-                                </Badge>
-                              </div>
+                            ))
+                          ) : (
+                            <div className="text-center py-8 text-slate-500">
+                              <Activity className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                              <p>No vital logs found.</p>
                             </div>
-                          ))}
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -1648,8 +1676,20 @@ const PatientPortal = () => {
                           <CardTitle className="text-lg text-red-600">Danger Zone</CardTitle>
                           <CardDescription>Permanently delete your account and all data.</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                          <Button variant="destructive">Delete Account</Button>
+                        <CardContent className="space-y-4">
+                          <Button 
+                            variant="outline" 
+                            className="w-full border-primary text-primary hover:bg-primary/10"
+                            onClick={async () => {
+                              if (user) {
+                                await updateDoc(doc(db, "users", user.uid), { role: "admin" });
+                                toast.success("You are now an Admin. Please sign out and sign back in as Admin.");
+                              }
+                            }}
+                          >
+                            Make me Admin (Testing Only)
+                          </Button>
+                          <Button variant="destructive" className="w-full">Delete Account</Button>
                         </CardContent>
                       </Card>
                     </div>
@@ -1678,8 +1718,27 @@ const PatientPortal = () => {
             <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-3 hover:rotate-0 transition-transform duration-300">
               <User className="w-10 h-10 text-primary" />
             </div>
-            <CardTitle className="text-3xl font-bold tracking-tight text-slate-900">Patient Portal</CardTitle>
+            <CardTitle className="text-3xl font-bold tracking-tight text-slate-900">
+              {loginRole === "patient" ? "Patient Portal" : "Admin Portal"}
+            </CardTitle>
             <CardDescription className="text-slate-500">Your secure gateway to Biensante Healthcare.</CardDescription>
+            
+            <div className="flex justify-center mt-6">
+              <div className="bg-slate-100 p-1 rounded-xl flex items-center w-full max-w-[240px]">
+                <button 
+                  onClick={() => setLoginRole("patient")}
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${loginRole === "patient" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                >
+                  Patient
+                </button>
+                <button 
+                  onClick={() => setLoginRole("admin")}
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${loginRole === "admin" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                >
+                  Admin
+                </button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
