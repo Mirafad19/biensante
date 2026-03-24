@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { biensante_logo_png as logo } from "@/assets/encodedImages";
 import { 
   User, 
   Search, 
@@ -108,6 +109,7 @@ const AdminPortal = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [allPatients, setAllPatients] = useState<Patient[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   
   // History states
@@ -155,6 +157,8 @@ const AdminPortal = () => {
     try {
       const patientsQ = query(collection(db, "users"), where("role", "==", "patient"));
       const patientsSnap = await getDocs(patientsQ);
+      const patientsList = patientsSnap.docs.map(doc => ({ ...doc.data(), uid: doc.id } as Patient));
+      setAllPatients(patientsList);
       
       const vitalsSnap = await getDocs(collection(db, "vitals"));
       const presSnap = await getDocs(query(collection(db, "prescriptions"), where("status", "==", "active")));
@@ -362,14 +366,8 @@ const AdminPortal = () => {
       <div className="flex-grow flex">
         {/* Sidebar */}
         <aside className="w-72 bg-slate-900 border-r border-slate-800 hidden lg:flex flex-col p-6 text-white">
-          <div className="flex items-center space-x-3 mb-10 px-2">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-              <Activity className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="font-bold text-white text-lg leading-none tracking-tight">Staff Portal</h1>
-              <p className="text-[10px] text-slate-400 mt-1 uppercase font-black tracking-widest">Biensante Healthcare</p>
-            </div>
+          <div className="flex items-center mb-10 px-2">
+            <img src={logo} alt="Biensante Staff" className="h-12 w-auto object-contain brightness-0 invert" />
           </div>
 
           <nav className="space-y-1 flex-grow">
@@ -433,25 +431,42 @@ const AdminPortal = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <Card className="border-none shadow-sm rounded-3xl overflow-hidden">
-                    <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-                      <CardTitle className="text-lg font-bold">Recent Patient Activity</CardTitle>
+                    <CardHeader className="bg-slate-50/50 border-b border-slate-100 flex flex-row items-center justify-between">
+                      <CardTitle className="text-lg font-bold">Patient Directory Overview</CardTitle>
+                      <Button variant="ghost" size="sm" className="text-primary font-bold" onClick={() => setActiveTab("patients")}>
+                        View All <ChevronRight className="ml-1 w-4 h-4" />
+                      </Button>
                     </CardHeader>
                     <CardContent className="p-0">
                       <div className="divide-y divide-slate-100">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer">
+                        {allPatients.slice(0, 5).map((patient) => (
+                          <div 
+                            key={patient.uid} 
+                            className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer"
+                            onClick={() => {
+                              setSelectedPatient(patient);
+                              setActiveTab("patients");
+                            }}
+                          >
                             <div className="flex items-center space-x-3">
                               <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
                                 <User className="w-5 h-5 text-slate-400" />
                               </div>
                               <div>
-                                <p className="text-sm font-bold text-slate-900">Patient #{1000 + i}</p>
-                                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">New Vital Recorded</p>
+                                <p className="text-sm font-bold text-slate-900">{patient.firstName} {patient.lastName}</p>
+                                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{patient.email}</p>
                               </div>
                             </div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{i * 10}m ago</span>
+                            <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100">
+                              {patient.patientId}
+                            </Badge>
                           </div>
                         ))}
+                        {allPatients.length === 0 && (
+                          <div className="p-8 text-center text-slate-400 italic">
+                            No patients registered yet.
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -524,6 +539,46 @@ const AdminPortal = () => {
                             </div>
                           </div>
                         ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {!selectedPatient && searchResults.length === 0 && (
+                  <Card className="mb-8 border-none shadow-sm rounded-3xl overflow-hidden">
+                    <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+                      <CardTitle className="text-lg font-bold">All Registered Patients</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {allPatients.map((patient) => (
+                          <div 
+                            key={patient.uid} 
+                            className="p-4 border border-slate-100 rounded-2xl hover:border-primary hover:shadow-md transition-all cursor-pointer group bg-white"
+                            onClick={() => setSelectedPatient(patient)}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <Avatar className="w-12 h-12">
+                                <AvatarFallback className="bg-slate-100 text-slate-600 font-bold">
+                                  {patient.firstName[0]}{patient.lastName[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-grow overflow-hidden">
+                                <p className="font-bold text-slate-900 group-hover:text-primary transition-colors truncate">
+                                  {patient.firstName} {patient.lastName}
+                                </p>
+                                <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{patient.patientId}</p>
+                              </div>
+                              <ChevronRight className="w-5 h-5 ml-auto text-slate-300 group-hover:text-primary transition-colors" />
+                            </div>
+                          </div>
+                        ))}
+                        {allPatients.length === 0 && (
+                          <div className="col-span-full p-12 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+                            <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                            <p className="text-slate-500 font-medium">No patients registered in the system yet.</p>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

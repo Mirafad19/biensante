@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { biensante_logo_png as logo } from "@/assets/encodedImages";
 import { 
   User, 
   Lock, 
@@ -508,6 +509,14 @@ const PatientPortal = () => {
       
       if (userDoc.exists()) {
         const data = userDoc.data();
+        
+        // If logging in as patient, but user is admin, block it
+        if (loginRole === "patient" && data.role === "admin") {
+          toast.error("Admin accounts must use the Staff login portal.");
+          await signOut(auth);
+          return;
+        }
+
         if (loginRole === "admin" && data.role !== "admin") {
           toast.error("This account does not have admin privileges.");
           await signOut(auth);
@@ -637,11 +646,8 @@ const PatientPortal = () => {
         {/* Sidebar Navigation */}
         <aside className="w-64 bg-white border-r border-slate-200 flex flex-col hidden lg:flex">
           <div className="p-6">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Activity className="text-white w-5 h-5" />
-              </div>
-              <span className="text-xl font-bold text-slate-900 tracking-tight">Biensante</span>
+            <Link to="/" className="flex items-center">
+              <img src={logo} alt="Biensante" className="h-12 w-auto object-contain" />
             </Link>
           </div>
 
@@ -1727,11 +1733,8 @@ const PatientPortal = () => {
         </div>
 
         <div className="relative z-10">
-          <div className="flex items-center space-x-3 mb-12">
-            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20">
-              <Activity className="text-white w-7 h-7" />
-            </div>
-            <span className="text-3xl font-black tracking-tighter">BIENSANTE</span>
+          <div className="flex items-center mb-12">
+            <img src={logo} alt="BIENSANTE" className="h-16 w-auto object-contain brightness-0 invert" />
           </div>
 
           <div className="max-w-md">
@@ -1761,12 +1764,7 @@ const PatientPortal = () => {
         <div className="w-full max-w-[440px] space-y-8">
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                <Activity className="text-white w-6 h-6" />
-              </div>
-              <span className="text-2xl font-black tracking-tighter">BIENSANTE</span>
-            </div>
+            <img src={logo} alt="BIENSANTE" className="h-12 w-auto object-contain" />
           </div>
 
           <div className="text-center lg:text-left space-y-2">
